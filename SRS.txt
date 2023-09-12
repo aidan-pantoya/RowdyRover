@@ -1,0 +1,24 @@
+AI Navigation:
+    "Lane assist":
+        Implement an algorithm that uses on-board cameras to detect rows of crops and stay within an acceptable distance around the currently traversed row.
+    "Turning":
+        Implement an algorithm that detects when rover is no longer over a row, will then find next row to traverse without going out-of-bounds of intended traversal area, skipping rows, and re-traversing rows
+    "Object detection":
+        Implement an algorithm that detects unusual objects in navigation path to avoid or stop for. Can stop for people and large objects and can try to avoid small objects if possible.
+    "Navigation area":
+        Be able to define an area for the rover to navigate. This can be done through detecting rows to traverse or through defining an area to traverse (GPS coordinates to define the shape of the field? Not desirable but is an option)
+
+Photogrammetry (Image stitching):
+    "Map Append":
+        Implement photogrammetry algorithms that will take live feed from the cameras to stitch together a map of each row onto an dynamic-size map or fixed-size map
+    "Map":
+        Either predefine space to insert rows onto (drone image, GPS coordinates, etc) or create map dynamically as rover scans rows.
+
+VR (Optional):
+    "Live VR Environment":
+        I don't think this is feasible to be honest. The bandwidth needed for a stable connection wirelessly would require at least 5GHz for a home internet setup. Cellular speeds slower than this (I don't know which cellular types equate to that) would lead to a suboptimal experience and a waste of effort (unless we could buffer it somehow, which would not make it "live")
+    "VR Environment":
+        We could somehow upload each map the rover creates after each scan to a website or something for the user to view in a VR headset browser. Idk how to implement this or where to begin.
+    
+AI Worker:
+    Implement something to detect if a certain area of crop needs pesticides, water, fertilizer, etc. Not sure if we can fit this into our current objectives.
