@@ -22,3 +22,65 @@ VR (Optional):
     
 AI Worker:
     Implement something to detect if a certain area of crop needs pesticides, water, fertilizer, etc. Not sure if we can fit this into our current objectives.
+
+
+    Example document: (ChatGPT)
+
+Software Requirements Specification (SRS) for Crop Mapping Rover
+    Project Overview
+        The Crop Mapping Rover aims to autonomously navigate through a field, capturing synchronized images of crop rows with three cameras and processing the data to create a 3D map of the entire field. 
+        This SRS document outlines the software and algorithm development, as well as the post-processing and analysis requirements for this project.
+    Software and Algorithm Development
+        Navigation Software
+            The navigation software shall provide autonomous movement capabilities to the rover.
+            It shall include obstacle avoidance algorithms to prevent collisions with field obstacles.
+            The software shall support predefined path-following and autonomous row detection modes.
+        Camera Control Software
+            The camera control software shall synchronize the three cameras for simultaneous image capture.
+            It shall allow control over camera settings such as exposure, focus, and capture rate.
+            The software shall trigger image capture based on predefined criteria (e.g., distance traveled, GPS coordinates).
+            Data Synchronization
+            Data from the cameras, IMU, and GPS shall be synchronized in a common timestamped format.
+            The synchronization accuracy shall be within ±5 milliseconds to ensure accurate data fusion.
+        Image Processing Algorithms
+            Image processing algorithms shall be implemented for feature detection, image stitching, and crop row tracking.
+            The software shall use computer vision techniques to identify and track crop rows in real-time.
+        3D Reconstruction
+            Photogrammetry algorithms shall be employed for 3D reconstruction from synchronized images.
+            The software shall generate point clouds and/or dense 3D meshes of crop rows.
+        Data Storage
+            Captured images, sensor data, and 3D reconstruction results shall be organized and stored in a structured database.
+            Data storage shall support efficient retrieval and archiving.
+    Post-Processing and Analysis
+        3D Mapping Software
+            The 3D mapping software shall combine individual crop row reconstructions to create a cohesive 3D map of the field.
+            It shall employ alignment and merging techniques to ensure accuracy and completeness.
+        Data Visualization
+            The software shall provide tools for visualizing the 3D map and associated crop data.
+            Visualization options shall include 3D renderings, heatmaps, and graphical representations.
+        Data Interpretation
+            Algorithms shall be developed to analyze crop data within the 3D map.
+            The software shall provide insights into crop health, density, and any anomalies detected.
+        Data Storage and Sharing
+            Final 3D map data and analysis results shall be stored in a secure and accessible format.
+            The software shall allow for data export and sharing with relevant stakeholders.
+    Non-Functional Requirements
+        The entire system shall operate reliably in varying weather and lighting conditions.
+        Response times for real-time processing shall not exceed 100 milliseconds.
+        The system shall be designed to minimize power consumption for extended field operations.
+        Data security measures shall be implemented to protect sensitive agricultural information.
+    Conclusion
+        This SRS document outlines the high-level software and algorithm development and post-processing and analysis requirements for the Crop Mapping Rover project. 
+        Detailed technical specifications, diagrams, and user interface designs will be developed in subsequent project phases.
+
+
+Example Document: (Me)
+
+Rowdy Rover SRS
+    Introduction
+        This project will be developed for the purpose of aiding farmers observe their crops as they grow. This will help them detect anomolies in the growing process and be able to generally observe the quality of the crops more conviently.
+        The project will take place over a span of two university semesters at WTAMU. The first semester will focus on the navigation of the rover and the second semester will focus on the development of creating the 3D map of the field and the rows of crop.
+    System Architecture
+        As it stands, the rover will utilize a light-weight chassis equiped with three high resolution cameras and a Raspberry Pi used for navigation and image processing.
+        If necessary, additional hardware can be equiped to ensure fulfilment of requirements and optimal performance.
+    
