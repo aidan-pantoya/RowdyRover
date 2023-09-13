@@ -82,5 +82,15 @@ Rowdy Rover SRS
         The project will take place over a span of two university semesters at WTAMU. The first semester will focus on the navigation of the rover and the second semester will focus on the development of creating the 3D map of the field and the rows of crop.
     System Architecture
         As it stands, the rover will utilize a light-weight chassis equiped with three high resolution cameras and a Raspberry Pi used for navigation and image processing.
+        A 3D camera can can be attached to ease the computational load for the Raspberry Pi for the potential VR use case.
         If necessary, additional hardware can be equiped to ensure fulfilment of requirements and optimal performance.
-    
+    Hardware Requirements
+        (Will need email the professor for hardware specifications for the equipment we will be using)
+    Functional Requirements
+        (Need to talk about specific algorithms to be implemented)
+    Nonfunctional Requirements
+        The rover will need to be able to detect obstacles in real time. The rover will need to be lightweight and travel in a way such that it will not collide with any crops or get stuck in the mud.
+        Energy consumption will need to be within the capabilites of the attached solar panel and must be optimized so that the rover will not die while on the field.
+        The rover must be able to work autonomously on the field without any human interaction or intervention to operate as expected.
+        There will be an interface to interact with the rover in real time to observe its operational status, observe environmental variables, and detect and potential anomolies or errors in the operation of the rover.
+        The rover will work during specified operation times of the day and will operate each specified day of each week.
