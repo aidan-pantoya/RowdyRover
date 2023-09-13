@@ -87,7 +87,18 @@ Rowdy Rover SRS
     Hardware Requirements
         (Will need email the professor for hardware specifications for the equipment we will be using)
     Functional Requirements
-        (Need to talk about specific algorithms to be implemented)
+        Navigation
+            We will utilize Simultaneous Localization and Mapping (SLAM) algorithms to determine the robot's location within the map of the field being created.
+            Two such algorithms include the EKF-SLAM algorithm and Graph-Based SLAM methods.
+            Implement an algorithm that detects when rover is no longer over a row, will then find next row to traverse without going out-of-bounds of intended traversal area, skipping rows, and re-traversing rows.
+            Implement obstacle avoidance using techniques such as Potential Fields and Reactive Navigation.
+        Image Stitching and Photogrammetry
+            We will implement feature detection and matching algorithms such as SIFT, SURF, and ORB which will detect distinctive local features in images for use in stitching images together.
+            Some image stitching algorithms we could implement would include RANSAC and Homography Transformation.
+            To construct the 3D image, we will utilize Structure-from-Motion and Bundle Adjustement.
+            For dense 3D meshes, we will utilize Multi-View Stereo techniques.
+            Depth will be calculated using the attached depth sensing cameras or if that option becomes unavailable, we could implement Stereo Vision to estimate depth from disparity between images.
+            We will visualize the map using common 3D model software and/or OpenGL or PCL.
     Nonfunctional Requirements
         The rover will need to be able to detect obstacles in real time. The rover will need to be lightweight and travel in a way such that it will not collide with any crops or get stuck in the mud.
         Energy consumption will need to be within the capabilites of the attached solar panel and must be optimized so that the rover will not die while on the field.
