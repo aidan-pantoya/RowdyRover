@@ -85,7 +85,8 @@ Rowdy Rover SRS
         A 3D camera can can be attached to ease the computational load for the Raspberry Pi for the potential VR use case.
         If necessary, additional hardware can be equiped to ensure fulfilment of requirements and optimal performance.
     Hardware Requirements
-        (Will need email the professor for hardware specifications for the equipment we will be using)
+        We will be using three Intel Real Sense D415 depth cameras to scan the rows of crops. A Raspberry Pi 4B will interface with the onboard hardware to control the rover, utilize information from onboard sensors, and provide the computational power required for navigation and image processing.
+        (Need to put more here for additional hardware specifications)
     Functional Requirements
         Navigation
             We will utilize Simultaneous Localization and Mapping (SLAM) algorithms to determine the robot's location within the map of the field being created.
