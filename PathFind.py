@@ -6,6 +6,8 @@
 import cv2
 import numpy as np
 
+image_path = 'C:/Users/apant/OneDrive/Pictures/CottonPOV3.jpg'
+
 def find_dirt_path(image_path):
     image = cv2.imread(image_path)
     if image is None:
@@ -50,10 +52,7 @@ def find_dirt_path(image_path):
         
     cv2.imshow('Original Image with Center Points', image)
     cv2.imshow('Detected Dirt Path', mask_cleaned)
-    cv2.imshow('Combined', combined_mask)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    image_path = 'C:/Users/apant/OneDrive/Pictures/CottonPOV2.jpg'
-    find_dirt_path(image_path)
+find_dirt_path(image_path)
