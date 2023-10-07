@@ -3,9 +3,6 @@ import PySimpleGUI as sg
 import os.path
 import subprocess
 
-takePhotoPath = "/home/rover/Desktop/Testing/cameraTesting/librealsenseOG/examples/save-to-disk/"
-cameraControlPath = "/home/rover/Desktop/Testing/cameraTesting/librealsenseOG/examples/sensor-control/"
-
 # First the window layout in 2 columns
 sg.theme("Reds")
 file_list_column = [
@@ -62,7 +59,7 @@ while True:
     
     if event == "Take Photo":
         if not os.path.exists("takePhoto.out"):
-            subprocess.call(["g++", takePhotoPath+"rs-save-to-disk.cpp",
+            subprocess.call(["g++", "rs-save-to-disk.cpp",
              "-lrealsense2", "-o", "takePhoto.out"])
         subprocess.call("./takePhoto.out")
     
@@ -71,12 +68,11 @@ while True:
         [sg.Text("Continue in terminal")],
         [sg.OK()]]).read(close=True)
         if not os.path.exists("cameraControl.out"):
-            subprocess.call(["g++", cameraControlPath+
-            "rs-sensor-control.cpp", "-pthread", "-lGL", "-lGLU",
-             "-lglfw", "-lrealsense2", "-o", "cameraControl.out"])
+            subprocess.call(["g++", "rs-sensor-control.cpp", 
+                             "-pthread", "-lGL", "-lGLU",
+                             "-lglfw", "-lrealsense2", "-o", "cameraControl.out"])
         os.system("gnome-terminal -e")
         output, error = subprocess.Popen(["lxterminal", "-e", "./cameraControl.out"]).communicate()
-        #subprocess.Popen("./cameraControl.out", shell=True)
     
     # Folder name was filled in, make a list of files in the folder
     if event == "-FOLDER-":
