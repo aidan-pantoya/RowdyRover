@@ -2,12 +2,12 @@
 # Path Finding through Python
 # Aidan Pantoya, Austyn Smock, Nathan Lancaster
 # September 2023
-
+import sys
 import cv2
 import numpy as np
 
 #path = 'C:/Users/apant/Downloads/DirtyField1.jpg' 
-path = 'C:/Users/apant/OneDrive/Desktop/Capstone/PaloDuroPath3.mp4'
+path = 'C:/Users/apant/OneDrive/Desktop/Capstone/PaloDuroPath2.mp4'
 
 target_percent = 10
 start_percent = target_percent
@@ -32,11 +32,11 @@ def extract_pixel_values(image):
     right_points = get_five_points(right_point, region_width, region_height,-shift_value)
     left_values = [image[y, x] for x, y in left_points]
     right_values = [image[y, x] for x, y in right_points]
-    display_image = image.copy()
-    for x, y in left_points + right_points:
-        cv2.circle(display_image, (x, y), 2, (0, 0, 255), -1)
-    cv2.imshow('Extracted Points', display_image)
-    cv2.waitKey(15)
+    # display_image = image.copy()
+    # for x, y in left_points + right_points:
+    #     cv2.circle(display_image, (x, y), 2, (0, 0, 255), -1)
+    # cv2.imshow('Extracted Points', display_image)
+    # cv2.waitKey(15)
     return left_values, right_values
 
 def mask_top_corners(image):
@@ -134,28 +134,30 @@ def process_image(image):
     else:
         print("Go Straight")
     Collect = sorted(Collect, key=lambda x: x[1])
-    _, img_width = result_image.shape[:2]
-    c_sz = max(int(img_width * 0.007), 3)
-    for c in Collect:
-        result_image = cv2.circle(result_image, c, c_sz, (155, 40, 0), -1)
-    result_image = cv2.circle(result_image, cent_avg, c_sz, (0, 0, 255), -1)
-    result_image = cv2.circle(result_image, (result_image.shape[1]//2, result_image.shape[0]//2), c_sz//2, (0, 157, 254), -1)
-    return result_image, mask_cleaned
+    # _, img_width = result_image.shape[:2]
+    # c_sz = max(int(img_width * 0.007), 3)
+    # for c in Collect:
+    #     result_image = cv2.circle(result_image, c, c_sz, (155, 40, 0), -1)
+    # result_image = cv2.circle(result_image, cent_avg, c_sz, (0, 0, 255), -1)
+    # result_image = cv2.circle(result_image, (result_image.shape[1]//2, result_image.shape[0]//2), c_sz//2, (0, 157, 254), -1)
+    return r_o_l
 
 def handle_input(path):
-    def display_output(original, mask):
-        cv2.imshow('Original with Center Points', original)
-        cv2.imshow('Detected Dirt Path', mask)
+    # def display_output(original, mask):
+    #     cv2.imshow('Original with Center Points', original)
+    #     cv2.imshow('Detected Dirt Path', mask)
 
     if path.endswith(('.jpg', '.png')):
         image = cv2.imread(path)
         if image is None:
             print("Error: Cannot read image.")
             return
-        processed_image, mask_cleaned = process_image(image)
-        display_output(processed_image, mask_cleaned)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        image = resize_image_to_screen(image,500,400)
+        image = equal_hist(image)
+        r_o_l = process_image(image)
+        # display_output(processed_image, mask_cleaned)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
     elif path.endswith('.mp4'):
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
@@ -167,12 +169,13 @@ def handle_input(path):
                 break
             frame = resize_image_to_screen(frame,500,400)
             frame = equal_hist(frame)
-            processed_frame, mask_cleaned = process_image(frame)
-            display_output(processed_frame, mask_cleaned)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        cap.release()
-        cv2.destroyAllWindows()
+            r_o_l = process_image(frame)
+        #     display_output(processed_frame, mask_cleaned)
+        #     if cv2.waitKey(1) & 0xFF == ord('q'):
+        #         break
+        # cap.release()
+        # cv2.destroyAllWindows()
+    return r_o_l
 
 def equal_hist(image):
     _, img_width = image.shape[:2]
