@@ -1,5 +1,5 @@
 To run the Rover Blender Sim:
-1. Download all files in /RowdyRover/Codes/*
+1. Download all files in /RowdyRover/Codes/* (After downloading ensure they are all in the same folder, will not work if they are not in the same folder)
 2. Download Blender
 3. cd into Blender directory to install imports:
 (For me this is like this:
