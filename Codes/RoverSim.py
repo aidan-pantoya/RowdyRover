@@ -5,6 +5,7 @@ import numpy as np
 import mathutils
 import math
 import cv2
+from mathutils import Vector
 
 blend_dir = os.path.dirname(bpy.data.filepath)
 if blend_dir not in sys.path:
@@ -86,14 +87,18 @@ def find_path_center(image_path):
             cv2.waitKey(500)
             cv2.destroyAllWindows()
 
-    r_o_l = int(width / 2) - cX
-    r_o_l = r_o_l * 90 / width
-    if r_o_l > 0:
-        print("Go Left degs:", r_o_l)
-    elif r_o_l < 0:
-        print('Go Right degs:', r_o_l)
-    else:
-        print("Go Straight")
+    try:
+        r_o_l = int(width / 2) - cX
+        r_o_l = r_o_l * 90 / width
+        if r_o_l > 0:
+            print("Go Left degs:", r_o_l)
+        elif r_o_l < 0:
+            print('Go Right degs:', r_o_l)
+        else:
+            print("Go Straight")
+    except:
+        print("Turning around")
+        r_o_l = 1000
     return r_o_l
 
 
@@ -168,19 +173,45 @@ def rotate_and_move_object(obj_name, x_degrees=0, y_degrees=0, z_degrees=0, dist
     # Apply movement
     obj.location += move_vector
 
+
+def turn_obj_around(obj_name, turn_side, dist=5.0):
+    obj = bpy.data.objects.get(obj_name)
+    if not obj:
+        print(f"Object {obj_name} not found.")
+        return
+    
+    # Rotate the object by 180 degrees around its Z-axis
+    obj.rotation_euler.z += math.radians(180)
+    
+    # Update the object's transformation to ensure the rotation is applied
+    bpy.context.view_layer.update()
+
+    # Calculate the move direction based on the turn_side
+    if turn_side == 0:  # 0 is move right
+        move_direction = obj.matrix_world @ Vector((dist, 2*dist, 0.0)) - obj.matrix_world @ Vector((0.0, 0.0, 0.0))
+    else:  # 1 is move left
+        move_direction = obj.matrix_world @ Vector((-dist, 2*dist, 0.0)) - obj.matrix_world @ Vector((0.0, 0.0, 0.0))
+    
+    # Update the object's location
+    obj.location += move_direction
+
 CreateField.create_field()
 
+Rover_Locations = []
 create_rover_with_cameras(rover_location=(0,0,0))
 rotate_and_move_object("Rover_Body", x_degrees=0, y_degrees=0, z_degrees=-45, distance=0.0)
 
-ImageRange = range(1,50)
+ImageRange = range(1,500)
+turnSide = 0 # 0 is turn left, 1 is turn right.
 
-for x in ImageRange:
-    
-    camera1_img = os.path.join(output_directory, "camera1_"+str(x)+".png")
-    camera2_img = os.path.join(output_directory, "camera2_"+str(x)+".png")
+for cntn in ImageRange:
+    cnt = f"{cntn:07}"
+    rover = bpy.data.objects.get("Rover_Body")
+    rx,ry = round(rover.location.x,4), round(rover.location.y,4)
+    camera1_img = os.path.join(output_directory, f"{cnt}_camera1_{rx}_{ry}.png")
+    camera2_img = os.path.join(output_directory, f"{cnt}_camera2_{rx}_{ry}.png")
 
-    concatenated_img_path = os.path.join(output_directory, "concatenated_"+str(x)+".png")
+    concatenated_img_path = os.path.join(output_directory, f"{cnt}_concatenated_{rx}_{ry}.png")
 
     render_camera_image("Camera_POV1", camera1_img)
     render_camera_image("Camera_POV2", camera2_img)
@@ -190,5 +221,16 @@ for x in ImageRange:
     # movement = PathFind.handle_input(concatenated_img_path)
     movement = find_path_center(concatenated_img_path)
 
-#    update_rover_location("Rover_Body", (movement,1,0))
-    rotate_and_move_object("Rover_Body", x_degrees=0, y_degrees=0, z_degrees=movement, distance=1.0)
+    if movement != 1000:
+        rotate_and_move_object("Rover_Body", x_degrees=0, y_degrees=0, z_degrees=movement, distance=1.0)
+    else:
+        turn_obj_around("Rover_Body",turnSide)
+        if turnSide == 0:
+            turnSide = 1
+        else: 
+            turnSide = 0
+    Rover_Locations.append((rx,ry))
+
+print("All Rover Locations:")
+for xy in Rover_Locations:
+    print(f"({xy[0]},{xy[1]})")
