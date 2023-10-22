@@ -22,3 +22,9 @@ To run the Rover Blender Sim:
 7. Change Output directory (line 14) to where ever you want to send your images.
 8. Change Image range (line 176) to however long you wish to go.
 9. Press run.
+
+NOTES:
+1. CreateField.py is creating the field. If we use a pre built field, then we don't need this.
+2. ImageStitch.py is just concatinating the 2 images. SLAM is needed.
+3. PathFind.py is not being used. While it was good for real-life video, it is not good for blender (There is too much dirt for it)
+4. RoverSim.py is creating the rover, cameras, taking images, finding the path, moving the rover, and continuing.
