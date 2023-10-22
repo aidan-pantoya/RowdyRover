@@ -1,0 +1,24 @@
+To run the Rover Blender Sim:
+1. Download all files in /RowdyRover/Codes/*
+2. Download Blender
+3. cd into Blender directory to install imports:
+(For me this is like this:
+ a. 'cd ..'
+ b. 'cd ..'
+ c. 'cd Program Files'
+ d. 'cd Blender Foundation'
+ e. 'cd Blender 3.6'
+ f. 'cd 3.6'
+ g. 'cd python'
+ h. 'cd bin'
+ i. 'python.exe -m pip install opencv-python'
+ j. 'python.exe -m pip install pillow'
+ k. Install anything else needed this way ^^
+ l. quit)
+
+4. Launch Blender
+5. File -> Open -> RowdyField.blend
+6. script -> Open -> RoverSim.py
+7. Change Output directory (line 14) to where ever you want to send your images.
+8. Change Image range (line 176) to however long you wish to go.
+9. Press run.
