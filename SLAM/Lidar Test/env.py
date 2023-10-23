@@ -1,11 +1,16 @@
 import math
 import pygame
+import os
+
+file_path = "map.png"
+directory_path = os.path.abspath(os.path.dirname(file_path))
+
 
 class buildEnvironment:
     def __init__(self, mapDimensions):
         pygame.init()
         self.pointCloud = []
-        self.externalMap = pygame.image.load('C:/msys64/home/Nathan Lancaster/RowdyRover/SLAM/Lidar Test/map.png')
+        self.externalMap = pygame.image.load(str(directory_path)+'/SLAM/'+'Lidar Test'+'/map.png')
         self.maph, self.mapw = mapDimensions
         self.mapWindowName = 'RRT path planning'
         pygame.display.set_caption(self.mapWindowName)
