@@ -5,11 +5,12 @@
 import sys
 import cv2
 import numpy as np
-
+import OpenEXR
+import Imath
 #path = 'C:/Users/apant/Downloads/DirtyField1.jpg' 
-path = 'C:/Users/apant/OneDrive/Desktop/Capstone/PaloDuroPath2.mp4'
+#path = 'C:/Users/apant/OneDrive/Desktop/Capstone/PaloDuroPath2.mp4'
 
-target_percent = 10
+target_percent = 0
 start_percent = target_percent
 
 def extract_pixel_values(image):
@@ -18,7 +19,7 @@ def extract_pixel_values(image):
     right_point = (3 * width // 4, height - int(height*0.25))
     region_width = int(0.05 * width)
     region_height = int(0.1 * height)
-    shift_value = int(0.17 * width)
+    shift_value = int(0.4 * width)
     
     def get_five_points(center, rw, rh,shift):
         return [
@@ -32,24 +33,24 @@ def extract_pixel_values(image):
     right_points = get_five_points(right_point, region_width, region_height,-shift_value)
     left_values = [image[y, x] for x, y in left_points]
     right_values = [image[y, x] for x, y in right_points]
-    # display_image = image.copy()
-    # for x, y in left_points + right_points:
-    #     cv2.circle(display_image, (x, y), 2, (0, 0, 255), -1)
-    # cv2.imshow('Extracted Points', display_image)
-    # cv2.waitKey(15)
+    display_image = image.copy()
+    for x, y in left_points + right_points:
+        cv2.circle(display_image, (x, y), 2, (0, 0, 255), -1)
+    cv2.imshow('Extracted Points', display_image)
+    cv2.waitKey(15)
     return left_values, right_values
 
 def mask_top_corners(image):
     height, width = image.shape[:2]
     mask = np.ones((height, width), dtype=np.uint8) * 255
-    corner_width = int(0.55 * width)
-    triangle1 = np.array([(0, 0), (corner_width, 0), (0, corner_width)])
-    triangle2 = np.array([(width, 0), (width - corner_width, 0), (width, corner_width)])
-    cv2.drawContours(mask, [triangle1], 0, 0, -1)
-    cv2.drawContours(mask, [triangle2], 0, 0, -1)
+    # corner_width = int(0.4 * width)
+    # triangle1 = np.array([(0, 0), (corner_width, 0), (0, corner_width)])
+    # triangle2 = np.array([(width, 0), (width - corner_width, 0), (width, corner_width)])
+    # cv2.drawContours(mask, [triangle1], 0, 0, -1)
+    # cv2.drawContours(mask, [triangle2], 0, 0, -1)
     top_height = int(0.2 * height)
     cv2.rectangle(mask, (0, 0), (width, top_height), 0, -1)
-    bottom_height = int(0.8 * height)
+    bottom_height = int(0.9 * height)
     cv2.rectangle(mask, (0, bottom_height), (width, height), 0, -1)
     return mask
 
@@ -80,6 +81,7 @@ def process_contours(image_section, mask_section):
     except:
         center = 0
     return image_section, center, all_points
+
 def determine_color(target_percent, image, left_pixel, right_pixel):
     total_pixels = image.shape[0] * image.shape[1]
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -110,7 +112,7 @@ def determine_color(target_percent, image, left_pixel, right_pixel):
 def clamp(value, min_value, max_value):
     return max(min(value, max_value), min_value)
 
-def resize_image_to_screen(image, screen_width=600, screen_height = 500):
+def resize_image_to_screen(image, screen_width=600, screen_height = 300):
     img_height, img_width = image.shape[:2]
     scale = min(screen_width / img_width, screen_height / img_height)
     return cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
@@ -126,38 +128,29 @@ def process_image(image):
         target_percent += 1
         result_image, cent_avg, Collect, mask_cleaned, total_pix, final_mask = determine_color(target_percent, image, left_pixel, right_pixel)
     centx, _ = cent_avg
+    cv2.imshow('mask img', final_mask)
+    cv2.waitKey(100)
     r_o_l = result_image.shape[1] - centx - (result_image.shape[1] / 2)
-    if r_o_l > 0:
-        print("Go Left:", r_o_l)
-    elif r_o_l < 0:
-        print('Go Right:', r_o_l)
-    else:
-        print("Go Straight")
     Collect = sorted(Collect, key=lambda x: x[1])
-    # _, img_width = result_image.shape[:2]
-    # c_sz = max(int(img_width * 0.007), 3)
-    # for c in Collect:
-    #     result_image = cv2.circle(result_image, c, c_sz, (155, 40, 0), -1)
-    # result_image = cv2.circle(result_image, cent_avg, c_sz, (0, 0, 255), -1)
-    # result_image = cv2.circle(result_image, (result_image.shape[1]//2, result_image.shape[0]//2), c_sz//2, (0, 157, 254), -1)
+    _, img_width = result_image.shape[:2]
+    c_sz = max(int(img_width * 0.007), 3)
+    for c in Collect:
+        result_image = cv2.circle(result_image, c, c_sz, (155, 40, 0), -1)
+    result_image = cv2.circle(result_image, cent_avg, c_sz, (0, 0, 255), -1)
+    result_image = cv2.circle(result_image, (result_image.shape[1]//2, result_image.shape[0]//2), c_sz//2, (0, 157, 254), -1)
+    cv2.imshow('result img', result_image)
+    cv2.waitKey(100)
     return r_o_l
 
 def handle_input(path):
-    # def display_output(original, mask):
-    #     cv2.imshow('Original with Center Points', original)
-    #     cv2.imshow('Detected Dirt Path', mask)
-
     if path.endswith(('.jpg', '.png')):
         image = cv2.imread(path)
         if image is None:
             print("Error: Cannot read image.")
             return
-        image = resize_image_to_screen(image,500,400)
+        image = resize_image_to_screen(image,600,300)
         image = equal_hist(image)
         r_o_l = process_image(image)
-        # display_output(processed_image, mask_cleaned)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
     elif path.endswith('.mp4'):
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
@@ -167,19 +160,22 @@ def handle_input(path):
             ret, frame = cap.read()
             if not ret:
                 break
-            frame = resize_image_to_screen(frame,500,400)
+            frame = resize_image_to_screen(frame,600,300)
             frame = equal_hist(frame)
             r_o_l = process_image(frame)
-        #     display_output(processed_frame, mask_cleaned)
-        #     if cv2.waitKey(1) & 0xFF == ord('q'):
-        #         break
-        # cap.release()
-        # cv2.destroyAllWindows()
-    return r_o_l
+    r_o_l = r_o_l * 90 / 600
+    if r_o_l > 0:
+        print("Go Left degs:", r_o_l)
+    elif r_o_l < 0:
+        print('Go Right degs:', r_o_l)
+    else:
+        print("Go Straight")
+    return -r_o_l
+
 
 def equal_hist(image):
     _, img_width = image.shape[:2]
-    k = int(img_width * 0.04)
+    k = int(img_width * 0.01)
     if k % 2 == 0:
         k +=1
     image = cv2.blur(image,(k,k))
@@ -190,4 +186,4 @@ def equal_hist(image):
     equ_bgr = cv2.cvtColor(merged, cv2.COLOR_YCrCb2BGR)
     return equ_bgr
 
-handle_input(path)
+#handle_input(path)
