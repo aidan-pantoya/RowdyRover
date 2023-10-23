@@ -40,6 +40,7 @@ if lidarBool:
         environment.map.blit(environment.infomap, (0, 0))
         pygame.display.update()
 
+# Feature detection code
 if not lidarBool:
     featureMap = featuresDetection()
     environment = buildEnvironment((600,1200))
