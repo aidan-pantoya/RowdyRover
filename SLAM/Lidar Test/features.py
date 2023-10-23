@@ -184,7 +184,7 @@ class featuresDetection:
 
         pf = pf - 1
 
-        while self.dist_point2line(line_eq, self.LASER_POINTS[pb][0]):
+        while self.dist_point2line(line_eq, self.LASER_POINTS[pb][0]) < self.EPSILON:
             if pb < break_point:
                 break
             else:
