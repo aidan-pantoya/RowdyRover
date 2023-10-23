@@ -172,7 +172,8 @@ if mappingBool:
                         environment.dataStorage(sensor_data)
 
                         featureMap.FEATURES = featureMap.lineFeats2point()
-                        featureMap.FEATURES.landmark_association(featureMap.FEATURES)
+                        features = featuresDetection()
+                        features.landmark_association(featureMap.FEATURES)
 
             for landmark in landmarks:
                 pygame.draw.line(environment.infomap, (0, 0, 255), landmark[1][0], landmark[1][1], 2)                               

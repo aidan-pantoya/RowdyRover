@@ -26,6 +26,7 @@ class featuresDetection:
 
     # Euclidian distance from point1 to point2
     def dist_point2point(self, point1, point2):
+        assert len(point1) >= 2 and len(point2) >= 2
         px = (point1[0] - point2[0]) ** 2
         py = (point1[1] - point2[1]) ** 2
         return math.sqrt(px + py)
@@ -226,31 +227,36 @@ class featuresDetection:
 
         return new_rep
     
-def landmark_association(landmarks):
-    thresh = 10
-    for l in landmarks:
-        flag = False
-        for i, landmark in enumerate(landmarks):
-            dist = featuresDetection.dist_point2point(l[2], landmark[2])
-            if dist < thresh:
-                if not is_overlap(l[i], landmark[i]):
-                    continue
-                else:
-                    landmarks.pop(i)
-                    landmarks.insert(i, l)
-                    flag = True
-                    break
-        
-        if not flag:
-            landmarks.append(l)
+    def landmark_association(self, landmarks):
+        thresh = 10
+        features_detector = featuresDetection()  # Create an instance of the featuresDetection class
+        updated_landmarks = []
+        for l in landmarks:
+            flag = False
+            for i, landmark in enumerate(updated_landmarks):
+                dist = features_detector.dist_point2point(l[2], landmark[2])  # Call the method on the instance
+                if dist < thresh:
+                    if not features_detector.is_overlap(l, landmark):  # Corrected index here
+                        continue
+                    else:
+                        updated_landmarks.pop(i)
+                        updated_landmarks.insert(i, l)
+                        flag = True
+                        break
+            if not flag:
+                updated_landmarks.append(l)
+        return updated_landmarks
 
-def is_overlap(seg1, seg2):
-    length1 = featuresDetection.dist_point2point(seg1[0], seg1[1])
-    length2 = featuresDetection.dist_point2point(seg2[0], seg2[1])
-    center1 = ((seg1[0][0] + seg1[1][0]) / 2, (seg1[0][1] + seg1[1][1]) / 2)
-    center2 = ((seg2[0][0] + seg2[1][0]) / 2, (seg2[0][1] + seg2[1][1]) / 2)
-    dist = featuresDetection.dist_point2point(center1, center2)
-    if dist > (length1 + length2) / 2:
-        return False
-    else:
-        return True
+
+    def is_overlap(self, seg1, seg2):
+        print("seg1 type:", type(seg1), "value:", seg1)
+        print("seg2 type:", type(seg2), "value:", seg2)
+        length1 = self.dist_point2point(seg1[0], seg1[1])
+        length2 = self.dist_point2point(seg2[0], seg2[1])
+        center1 = ((seg1[0][0] + seg1[1][0]) / 2, (seg1[0][1] + seg1[1][1]) / 2)
+        center2 = ((seg2[0][0] + seg2[1][0]) / 2, (seg2[0][1] + seg2[1][1]) / 2)
+        dist = self.dist_point2point(center1, center2)
+        if dist > (length1 + length2) / 2:
+            return False
+        else:
+            return True
