@@ -2,7 +2,7 @@
 import RPi.GPIO as GPIO
 import time
 
-#Definition of  motor pins
+#Definition of motor pins
 IN1 = 20
 IN2 = 21
 IN3 = 19
@@ -10,7 +10,7 @@ IN4 = 26
 ENA = 16
 ENB = 13
 
-#Definition of  button
+#Definition of button
 key = 8
 
 #TrackSensorLeftPin1 TrackSensorLeftPin2 TrackSensorRightPin1 TrackSensorRightPin2
@@ -128,7 +128,7 @@ def stop_rover():
     line_timer = time.time()  # Reset the timer
     detected_lines.clear()  # Clear the list of detected lines
     
-def return_to_start():
+def return_to_start(target_line):
     # Continue to the end of the current line
     run(50, 50)
     time.sleep(2)  # Adjust the time based on your rover's speed and environment
@@ -137,13 +137,18 @@ def return_to_start():
     spin_left(50, 50)
     time.sleep(2)  # Adjust the time based on your rover's speed and environment
 
-    # Go back down the line in reverse order
+    # Go back down the lines until the target line is reached
     for line in reversed(detected_lines):
-        if line == 'left':
-            spin_left(50, 50)
-        elif line == 'right':
-            spin_right(50, 50)
-        time.sleep(2)  # Adjust the time based on your rover's speed and environment
+        if line == target_line:
+            resume_following = True
+            break  # Stop when the target line is reached
+        elif line is not None:
+            if line.startswith('row'):
+                # Handle the line based on your specific logic
+                print(f"Processing line: {line}")
+
+        # Adjust the time based on your rover's speed and environment
+        time.sleep(2)
 
     brake()
 
@@ -153,6 +158,8 @@ time.sleep(2)
 # Initialize a timer and lines variable
 line_timer = time.time()
 detected_lines = []  # List to store detected lines
+stop_signal = False  # Flag to indicate the stop signal
+resume_following = False  # Flag to control when to resume following lines
 
 #The try/except statement is used to detect errors in the try block.
 #the except statement catches the exception information and processes it.
@@ -168,73 +175,73 @@ def lineFollow():
             TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
             TrackSensorRightValue2 = GPIO.input(TrackSensorRightPin2)
 
-            #4 tracking pins level status
-            # 0 0 X 0
-            # 1 0 X 0
-            # 0 1 X 0
-            #Turn right in place,speed is 100,delay 80ms
-            #Handle right acute angle and right right angle
-            if (TrackSensorLeftValue1 == False or TrackSensorLeftValue2 == False) and  TrackSensorRightValue2 == False:
-                spin_right(35, 35)
-                time.sleep(0.08)
-    
-            #4 tracking pins level status
-            # 0 X 0 0       
-            # 0 X 0 1 
-            # 0 X 1 0       
-            #Turn right in place,speed is 100,delay 80ms   
-            #Handle left acute angle and left right angle 
-            elif TrackSensorLeftValue1 == False and (TrackSensorRightValue1 == False or  TrackSensorRightValue2 == False):
-                spin_left(35, 35)
-                time.sleep(0.08)
-    
-            # 0 X X X
-            #Left_sensor1 detected black line
-            elif TrackSensorLeftValue1 == False:
-                spin_left(35, 35)
+            if resume_following:
+                #4 tracking pins level status
+                # 0 0 X 0
+                # 1 0 X 0
+                # 0 1 X 0
+                #Turn right in place,speed is 100,delay 80ms
+                #Handle right acute angle and right right angle
+                if (TrackSensorLeftValue1 == False or TrackSensorLeftValue2 == False) and  TrackSensorRightValue2 == False:
+                    spin_right(35, 35)
+                    time.sleep(0.08)
         
-            # X X X 0
-            #Right_sensor2 detected black line
-            elif TrackSensorRightValue2 == False:
-                spin_right(35, 35)
-    
-            #4 tracking pins level status
-            # X 0 1 X
-            elif TrackSensorLeftValue2 == False and TrackSensorRightValue1 == True:
-                left(0,40)
-    
-            #4 tracking pins level status
-            # X 1 0 X  
-            elif TrackSensorLeftValue2 == True and TrackSensorRightValue1 == False:
-                right(40, 0)
-    
-            #4 tracking pins level status
-            # X 0 0 X
-            elif TrackSensorLeftValue2 == False and TrackSensorRightValue1 == False:
-                run(50, 50)
-    
-            # Check if the stop signal is received
-            if GPIO.input(key) == 0:
-                stop_signal = True
-                stop_rover()
-                break
+                #4 tracking pins level status
+                # 0 X 0 0       
+                # 0 X 0 1 
+                # 0 X 1 0       
+                #Turn right in place,speed is 100,delay 80ms   
+                #Handle left acute angle and left right angle 
+                elif TrackSensorLeftValue1 == False and (TrackSensorRightValue1 == False or  TrackSensorRightValue2 == False):
+                    spin_left(35, 35)
+                    time.sleep(0.08)
+        
+                # 0 X X X
+                #Left_sensor1 detected black line
+                elif TrackSensorLeftValue1 == False:
+                    spin_left(35, 35)
+            
+                # X X X 0
+                #Right_sensor2 detected black line
+                elif TrackSensorRightValue2 == False:
+                    spin_right(35, 35)
+        
+                #4 tracking pins level status
+                # X 0 1 X
+                elif TrackSensorLeftValue2 == False and TrackSensorRightValue1 == True:
+                    left(0,40)
+        
+                #4 tracking pins level status
+                # X 1 0 X  
+                elif TrackSensorLeftValue2 == True and TrackSensorRightValue1 == False:
+                    right(40, 0)
+        
+                #4 tracking pins level status
+                # X 0 0 X
+                elif TrackSensorLeftValue2 == False and TrackSensorRightValue1 == False:
+                    run(50, 50)
+        
+                # Check if the stop signal is received
+                if GPIO.input(key) == 0:
+                    stop_signal = True
+                    stop_rover()
+                    break
 
-            # Check which line the rover is on and update the detected_lines list
-            if TrackSensorLeftValue1 == False or TrackSensorLeftValue2 == False:
-                detected_lines.append('left')
-            elif TrackSensorRightValue1 == False or TrackSensorRightValue2 == False:
-                detected_lines.append('right')
-            else:
-                detected_lines.clear()  # Clear the list if no line is detected
+                # Check which line the rover is on and update the detected_lines list
+                if TrackSensorLeftValue1 == False or TrackSensorLeftValue2 == False:
+                    detected_lines.append('row{}'.format(len(detected_lines) + 1))
+                elif TrackSensorRightValue1 == False or TrackSensorRightValue2 == False:
+                    detected_lines.append('row{}'.format(len(detected_lines) + 1))
 
-            # Reset the timer whenever a line is detected
-            if detected_lines:
-                line_timer = time.time()
 
-            # Check if the rover has been without a line for more than 1 second
-            if time.time() - line_timer > 1:
-                stop_rover()
-                continue  # Skip the rest of the loop and restart the line following
+                # Reset the timer whenever a line is detected
+                if detected_lines:
+                    line_timer = time.time()
+
+                # Check if the rover has been without a line for more than 1 second
+                if time.time() - line_timer > 1:
+                    stop_rover()
+                    continue  # Skip the rest of the loop and restart the line following
 
 
 
