@@ -159,14 +159,14 @@ time.sleep(2)
 line_timer = time.time()
 detected_lines = []  # List to store detected lines
 stop_signal = False  # Flag to indicate the stop signal
-resume_following = False  # Flag to control when to resume following lines
+resume_following = True  # Flag to control when to resume following lines
 
 #The try/except statement is used to detect errors in the try block.
 #the except statement catches the exception information and processes it.
 def lineFollow():
     try:
         init()
-        key_scan()
+        #key_scan()
         while not stop_signal:
             #When the black line is detected, the corresponding indicator of the tracking module is on, and the port level is LOW.
             #When the black line is not detected, the corresponding indicator of the tracking module is off, and the port level is HIGH.
@@ -233,7 +233,6 @@ def lineFollow():
                 elif TrackSensorRightValue1 == False or TrackSensorRightValue2 == False:
                     detected_lines.append('row{}'.format(len(detected_lines) + 1))
 
-
                 # Reset the timer whenever a line is detected
                 if detected_lines:
                     line_timer = time.time()
@@ -243,13 +242,13 @@ def lineFollow():
                     stop_rover()
                     continue  # Skip the rest of the loop and restart the line following
 
-
-
             #When the level of 4 pins are 1 1 1 1 , the car keeps the previous running state.     
     except KeyboardInterrupt:
         pass
 
-pwm_ENA.stop()
-pwm_ENB.stop()
+lineFollow()
+
+#pwm_ENA.stop()
+#pwm_ENB.stop()
 GPIO.cleanup()
 
