@@ -95,7 +95,6 @@ def run_timer(leftspeed, rightspeed):
         TrackSensorLeftValue2  = GPIO.input(TrackSensorLeftPin2)
         TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
         TrackSensorRightValue2 = GPIO.input(TrackSensorRightPin2)
-            
 
 #back
 def back(leftspeed, rightspeed):
@@ -170,6 +169,21 @@ def spin_right_find(leftspeed, rightspeed):
         time.sleep(0.1)
         TrackSensorLeftValue2  = GPIO.input(TrackSensorLeftPin2)
 
+#turn right in place
+def spin_180():
+    print("Spin 180")
+    TrackSensorLeftValue2 = GPIO.input(TrackSensorLeftPin2)
+    TrackSensorLeftValue1 = GPIO.input(TrackSensorLeftPin1)
+    while TrackSensorLeftValue2 and TrackSensorLeftValue1:
+        GPIO.output(IN1, GPIO.LOW)
+        GPIO.output(IN2, GPIO.HIGH)
+        GPIO.output(IN3, GPIO.HIGH)
+        GPIO.output(IN4, GPIO.LOW)
+        pwm_ENA.ChangeDutyCycle(50)
+        pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(0.1)
+        TrackSensorLeftValue2 = GPIO.input(TrackSensorLeftPin2)
+        TrackSensorLeftValue1 = GPIO.input(TrackSensorLeftPin1)
 
 #brake
 def brake():
@@ -302,32 +316,27 @@ def lineFollow():
             elif all([TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2]):
                 detected_lines.append('row{}'.format(len(detected_lines) + 1))
                 if len(detected_lines) >= expectedRows:
+                    print('performing 180')
                     expectedRows = expectedRows * 2
-                    spin_right_find(30,30)
+                    spin_180() #spin_left_find(30,30)
+                    spin_180()
+                    turn_right = not turn_right
                 elif turn_right:
-                    print("Turning right, no line detected on any sensor")
-                    print("Sensor values: ", TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2)
                     spin_right(30,30)
                     time.sleep(1.2)
                     run_timer(30, 30)
-                    print("Straight after no line detected and spin")
-                    print("Sensor values: ", TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2)
                     run(30,30)
                     time.sleep(0.2)
                     print("Spin right find")
-                    spin_right_find(40,20)
+                    spin_right_find(40,35)
                 elif not turn_right:
-                    print("Turning left, no line detected on any sensor")
-                    print("Sensor values: ", TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2)
                     spin_left(30,30)
                     time.sleep(1.2)
                     run_timer(30, 30)
-                    print("Straight after no line detected and spin")
-                    print("Sensor values: ", TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2)
                     run(30,30)
-                    print("Spin right find")
+                    print("Spin left find")
                     time.sleep(0.2)
-                    spin_left_find(20,40)
+                    spin_left_find(35,40)
                 turn_right = not turn_right
             #When the level of 4 pins are 1 1 1 1 , the car keeps the previous running state.     
     except KeyboardInterrupt:
