@@ -48,7 +48,7 @@ def init():
     pwm_ENB = GPIO.PWM(ENB, 2000)
     pwm_ENA.start(0)
     pwm_ENB.start(0)
-	
+    
 #advance
 def run(leftspeed, rightspeed):
     GPIO.output(IN1, GPIO.HIGH)
@@ -77,11 +77,22 @@ def run_timer(leftspeed, rightspeed, turn_right):
         TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
         TrackSensorRightValue2 = GPIO.input(TrackSensorRightPin2)
     if turn_right:
-        spin_right(30, 0)
-        time.sleep(0.5)
+        while all([TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2]):
+            spin_right(50, 25)
+            time.sleep(0.1)
+            TrackSensorLeftValue1  = GPIO.input(TrackSensorLeftPin1)
+            TrackSensorLeftValue2  = GPIO.input(TrackSensorLeftPin2)
+            TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
+            TrackSensorRightValue2 = GPIO.input(TrackSensorRightPin2)
     elif not turn_right:
-        spin_left(0,30)
-        time.sleep(0.5)
+         while all([TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2]):
+            spin_left(25,50)
+            time.sleep(0.1)
+            TrackSensorLeftValue1  = GPIO.input(TrackSensorLeftPin1)
+            TrackSensorLeftValue2  = GPIO.input(TrackSensorLeftPin2)
+            TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
+            TrackSensorRightValue2 = GPIO.input(TrackSensorRightPin2)
+            
 
 #back
 def back(leftspeed, rightspeed):
@@ -91,7 +102,7 @@ def back(leftspeed, rightspeed):
     GPIO.output(IN4, GPIO.HIGH)
     pwm_ENA.ChangeDutyCycle(leftspeed)
     pwm_ENB.ChangeDutyCycle(rightspeed)
-	
+    
 #turn left 
 def left(leftspeed, rightspeed):
     GPIO.output(IN1, GPIO.LOW)
@@ -109,7 +120,7 @@ def right(leftspeed, rightspeed):
     GPIO.output(IN4, GPIO.LOW)
     pwm_ENA.ChangeDutyCycle(leftspeed)
     pwm_ENB.ChangeDutyCycle(rightspeed)
-	
+    
 #turn left in place
 def spin_left(leftspeed, rightspeed):
     GPIO.output(IN1, GPIO.LOW)
@@ -176,11 +187,13 @@ def return_to_start(target_line):
         time.sleep(2)
 
     brake()
+
+
 detected_lines = [] # List to store detected lines
 #The try/except statement is used to detect errors in the try block.
 #the except statement catches the exception information and processes it.
 def lineFollow():
-
+    expectedRows = input('How many rows? (as an integer)')
     #delay 2s   
     time.sleep(2)
 
@@ -255,14 +268,19 @@ def lineFollow():
                     break
 
             elif all([TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2]):
-                if turn_right:
-                    spin_right(80, 0)
-                    time.sleep(1.2)
-                elif not turn_right:
-                    spin_left(0,80)
-                    time.sleep(1.2)
-                run_timer(30, 30, turn_right)
                 detected_lines.append('row{}'.format(len(detected_lines) + 1))
+                if len(detected_lines) >= expectedRows:
+                    expectedRows = expectedRows * 2
+                    spin_right(30,30)
+                    time.sleep(2.4)
+                elif turn_right:
+                    spin_right(30,30)
+                    time.sleep(1.2)
+                    run_timer(30, 30, turn_right)
+                elif not turn_right:
+                    spin_left(30,30)
+                    time.sleep(1.2)
+                    run_timer(30, 30, turn_right)
                 turn_right = not turn_right
             #When the level of 4 pins are 1 1 1 1 , the car keeps the previous running state.     
     except KeyboardInterrupt:
