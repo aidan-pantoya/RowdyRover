@@ -59,14 +59,23 @@ def run(leftspeed, rightspeed):
     pwm_ENB.ChangeDutyCycle(rightspeed)
     
 #advance on timer
-def run(leftspeed, rightspeed, timer):
-    GPIO.output(IN1, GPIO.HIGH)
-    GPIO.output(IN2, GPIO.LOW)
-    GPIO.output(IN3, GPIO.HIGH)
-    GPIO.output(IN4, GPIO.LOW)
-    pwm_ENA.ChangeDutyCycle(leftspeed)
-    pwm_ENB.ChangeDutyCycle(rightspeed)
-    time.sleep(timer)
+def run_searching(leftspeed, rightspeed):
+    TrackSensorLeftValue1  = GPIO.input(TrackSensorLeftPin1)
+    TrackSensorLeftValue2  = GPIO.input(TrackSensorLeftPin2)
+    TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
+    TrackSensorRightValue2 = GPIO.input(TrackSensorRightPin2)
+    while all([TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2]):
+        GPIO.output(IN1, GPIO.HIGH)
+        GPIO.output(IN2, GPIO.LOW)
+        GPIO.output(IN3, GPIO.HIGH)
+        GPIO.output(IN4, GPIO.LOW)
+        pwm_ENA.ChangeDutyCycle(leftspeed)
+        pwm_ENB.ChangeDutyCycle(rightspeed)
+        time.sleep(0.1)
+        TrackSensorLeftValue1  = GPIO.input(TrackSensorLeftPin1)
+        TrackSensorLeftValue2  = GPIO.input(TrackSensorLeftPin2)
+        TrackSensorRightValue1 = GPIO.input(TrackSensorRightPin1)
+        TrackSensorRightValue2 = GPIO.input(TrackSensorRightPin2)
 
 #back
 def back(leftspeed, rightspeed):
@@ -170,7 +179,7 @@ line_timer = time.time()
 detected_lines = [] # List to store detected lines
 stop_signal = False  # Flag to indicate the stop signal
 turn_right = True # What turn to take next
-
+next_line = True
 
 #The try/except statement is used to detect errors in the try block.
 #the except statement catches the exception information and processes it.
@@ -238,13 +247,10 @@ def lineFollow():
                     stop_rover()
                     break
 
-                # Check which line the rover is on and update the detected_lines list
-                if TrackSensorLeftValue1 == False or TrackSensorLeftValue2 == False:
-                    detected_lines.append('row{}'.format(len(detected_lines) + 1))
-                elif TrackSensorRightValue1 == False or TrackSensorRightValue2 == False:
-                    detected_lines.append('row{}'.format(len(detected_lines) + 1))
+                
 
             elif all([TrackSensorLeftValue1, TrackSensorLeftValue2, TrackSensorRightValue1, TrackSensorRightValue2]):
+                
                 if turn_right:
                     spin_right(99, 0)
                     time.sleep(1.0)
@@ -253,8 +259,7 @@ def lineFollow():
                     spin_left(0,99)
                     time.sleep(1.0)
                     turn_right = not turn_right
-                
-                run(50, 50, 2.0)
+                run_searching(50, 50)
                 
             #When the level of 4 pins are 1 1 1 1 , the car keeps the previous running state.     
     except KeyboardInterrupt:
