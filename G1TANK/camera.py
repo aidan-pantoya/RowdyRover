@@ -2,16 +2,24 @@ import cv2
 import threading
 import time
 import enum
+import numpy as np
+
+def process_contours(image):
+    image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+    image = cv2.GaussianBlur(image, (5, 5), 0)
+    _, image = cv2.threshold(image, 50, 255, cv2.THRESH_BINARY_INV)
+    cv2.imshow("Mask", image)
+
+    cv2.waitKey(10)
+    return
+
 
 def bgr8_to_jpeg(value, quality=75):
     return bytes(cv2.imencode('.jpg', value)[1])
 
 # Specifies which camera to use, can be found through the terminal command:
 # ls /dev/
-image = cv2.VideoCapture(0)
-# Can also do:
-# cap = cv2.VideoCapture("[videoPath]")
-# This allows us to use a video instead of a camera
+image = cv2.VideoCapture(-1)
 
 # width = 1280
 # height = 960
@@ -35,6 +43,7 @@ while ret:
     try:
         cv2.imshow("Camera Feed", frame)
         ret, frame = image.read()
+        process_contours(frame)
         c = cv2.waitKey(10)
         #time.sleep(1)
     except KeyboardInterrupt:

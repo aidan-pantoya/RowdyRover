@@ -343,7 +343,7 @@ def lineFollow():
         pass
 
 lineFollow()
-print(detected_lines)
+print detected_lines
 #pwm_ENA.stop()
 #pwm_ENB.stop()
 GPIO.cleanup()
