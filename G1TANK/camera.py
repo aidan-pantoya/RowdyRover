@@ -21,18 +21,24 @@ image = cv2.VideoCapture(0)
 image.set(3,600)
 image.set(4,500)
 image.set(5,30) # Set frame
-image.set(cv2.CAP_PROP_FOURCC, cv2.VIdeoWriter.fourcc('M', 'J', 'P', 'G'))
+image.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
 image.set(cv2.CAP_PROP_BRIGHTNESS, 40) # Set brightness. Range: -64 to 64
 image.set(cv2.CAP_PROP_CONTRAST, 40) # Set contrast. Range: -64 to 64
 image.set(cv2.CAP_PROP_EXPOSURE, 156) # Set exposure. Range: 1 to 5000
 
-# ret, frame = image.read() # Read camera data
-
-while True:
+if image.isOpened():
+    ret, frame = image.read() # Read camera data
+else:
+    ret = False
+    
+while ret:
     try:
+        cv2.imshow("Camera Feed", frame)
         ret, frame = image.read()
-        time.sleep(0.01)
+        c = cv2.waitKey(10)
+        #time.sleep(1)
     except KeyboardInterrupt:
        break 
    
 image.release() # After using object, we need to release it
+cv2.destroyAllWindows()
