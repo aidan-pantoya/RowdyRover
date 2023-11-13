@@ -39,46 +39,46 @@ def servo_pulse(myangle):
 def corlor_light(pos):
     if pos > 150:
         GPIO.output(LED_R, GPIO.HIGH)
-	GPIO.output(LED_G, GPIO.LOW)
-	GPIO.output(LED_B, GPIO.LOW)
+        GPIO.output(LED_G, GPIO.LOW)
+        GPIO.output(LED_B, GPIO.LOW)
     elif pos > 125:
-	GPIO.output(LED_R, GPIO.LOW)
-	GPIO.output(LED_G, GPIO.HIGH)
-	GPIO.output(LED_B, GPIO.LOW)
+        GPIO.output(LED_R, GPIO.LOW)
+        GPIO.output(LED_G, GPIO.HIGH)
+        GPIO.output(LED_B, GPIO.LOW)
     elif pos >100:
         GPIO.output(LED_R, GPIO.LOW)
-	GPIO.output(LED_G, GPIO.LOW)
-	GPIO.output(LED_B, GPIO.HIGH)
+        GPIO.output(LED_G, GPIO.LOW)
+        GPIO.output(LED_B, GPIO.HIGH)
     elif pos > 75:
-	GPIO.output(LED_R, GPIO.HIGH)
-	GPIO.output(LED_G, GPIO.HIGH)
-	GPIO.output(LED_B, GPIO.LOW)
+        GPIO.output(LED_R, GPIO.HIGH)
+        GPIO.output(LED_G, GPIO.HIGH)
+        GPIO.output(LED_B, GPIO.LOW)
     elif pos > 50:
-	GPIO.output(LED_R, GPIO.LOW)
-	GPIO.output(LED_G, GPIO.HIGH)
-	GPIO.output(LED_B, GPIO.HIGH)
+        GPIO.output(LED_R, GPIO.LOW)
+        GPIO.output(LED_G, GPIO.HIGH)
+        GPIO.output(LED_B, GPIO.HIGH)
     elif pos > 25:
         GPIO.output(LED_R, GPIO.HIGH)
-	GPIO.output(LED_G, GPIO.LOW)
-	GPIO.output(LED_B, GPIO.HIGH)
+        GPIO.output(LED_G, GPIO.LOW)
+        GPIO.output(LED_B, GPIO.HIGH)
     elif pos > 0:
         GPIO.output(LED_R, GPIO.HIGH)
-	GPIO.output(LED_G, GPIO.HIGH)
-	GPIO.output(LED_B, GPIO.HIGH)
+        GPIO.output(LED_G, GPIO.HIGH)
+        GPIO.output(LED_B, GPIO.HIGH)
     else :
         GPIO.output(LED_R, GPIO.LOW)
-	GPIO.output(LED_G, GPIO.LOW)
-	GPIO.output(LED_B, GPIO.LOW)
+        GPIO.output(LED_G, GPIO.LOW)
+        GPIO.output(LED_B, GPIO.LOW)
 		
 def servo_control_color():
     for pos in range(181):
         servo_pulse(pos)
-	corlor_light(pos)
-	time.sleep(0.009) 
+        corlor_light(pos)
+        time.sleep(0.009) 
     for pos in reversed(range(181)):
         servo_pulse(pos)
-	corlor_light(pos)
-	time.sleep(0.009)
+        corlor_light(pos)
+        time.sleep(0.009)
 		
 time.sleep(2)
 
@@ -87,7 +87,7 @@ time.sleep(2)
 try:
     init()
     while True:
- 	servo_control_color()
+ 	    servo_control_color()
 		
 except KeyboardInterrupt:
     pass
