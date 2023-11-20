@@ -109,6 +109,7 @@ def find_row():
         pwm_ENA.ChangeDutyCycle(30)
         pwm_ENB.ChangeDutyCycle(30)
         time.sleep(0.1)
+    servo_init()
 
 #back
 def back(leftspeed, rightspeed):
