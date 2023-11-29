@@ -239,7 +239,14 @@ detected_lines = [] # List to store detected lines
 #The try/except statement is used to detect errors in the try block.
 #the except statement catches the exception information and processes it.
 def lineFollow():
-    expectedRows = input('How many rows? (as an integer)')
+    while True:
+        try:
+            expectedRows = int(input('Enter number of rows: '))
+            if expectedRows <= 0:
+                raise ValueError
+            break
+        except ValueError:
+            print("Invalid value entered")
     #delay 2s   
     time.sleep(2)
 

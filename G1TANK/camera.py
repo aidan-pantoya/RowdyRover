@@ -267,12 +267,12 @@ detected_lines = [] # List to store detected lines
 
 while True:
     try:
-        expectedRows = int(input('How many rows? (as an integer)'))
+        expectedRows = int(input('Enter number of rows: '))
         if expectedRows <= 0:
             raise ValueError
         break
     except ValueError:
-        print("Incorrect value entered")
+        print("Invalid value entered")
 #delay 2s   
 time.sleep(2)
 
