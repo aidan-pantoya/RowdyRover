@@ -83,6 +83,15 @@ def init():
     pwm_ENB = GPIO.PWM(ENB, 2000)
     pwm_ENA.start(0)
     pwm_ENB.start(0)
+
+#All servo reset
+def servo_init():
+    servoflag = 0
+    servoinitpos = 90
+    if servoflag != servoinitpos:        
+        leftrightservo_appointed_detection(servoinitpos)
+        time.sleep(0.5)
+        pwm_LeftRightServo.ChangeDutyCycle(0)   
     
 #advance
 def run(leftspeed, rightspeed):
@@ -109,6 +118,7 @@ def find_row():
         pwm_ENA.ChangeDutyCycle(30)
         pwm_ENB.ChangeDutyCycle(30)
         time.sleep(0.1)
+    servo_init()
 
 #back
 def back(leftspeed, rightspeed):
