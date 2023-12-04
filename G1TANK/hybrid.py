@@ -371,15 +371,6 @@ def process_degs(degs,tryway,looking):
             time.sleep(0.05)
             return True, looking
 
-    elif degs < 8 and degs > -8:
-        run(val,val)
-        time.sleep(0.12)
-    elif degs < 0:
-        spin_right(val,val)
-        time.sleep(0.04)
-    elif degs > 0:
-        spin_left(val,val)
-        time.sleep(0.04) 
     return tryway, 0
 
 def process_contours():
