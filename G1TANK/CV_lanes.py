@@ -15,10 +15,8 @@ IN4 = 26
 ENA = 16
 ENB = 13
 
-
 #Initialize the servo angle
 ServoLeftRightPos = 90
-
 
 #Servo pin definition
 ServoLeftRightPin = 11
@@ -27,7 +25,6 @@ ServoLeftRightPin = 11
 GPIO.setmode(GPIO.BCM)
 
 GPIO.setwarnings(False)
-
 
 #All servo reset
 def servo_init():
@@ -44,7 +41,6 @@ def leftrightservo_appointed_detection(pos):
         pwm_LeftRightServo.ChangeDutyCycle(2.5 + 10 * pos/180)
         time.sleep(0.02)                            
         #pwm_LeftRightServo.ChangeDutyCycle(0)  
-
     
 #servo stop
 def servo_stop():
@@ -161,117 +157,93 @@ def stop_rover():
     line_timer = time.time()  # Reset the timer
     detected_lines.clear()  # Clear the list of detected lines
     
-def mask_top_corners(image):
-    height, width = image.shape[:2]
-    mask = np.ones((height, width), dtype=np.uint8) * 255
-    corner_width = int(0.4 * width)
-    triangle1 = np.array([(0, 0), (corner_width, 0), (0, corner_width)])
-    triangle2 = np.array([(width, 0), (width - corner_width, 0), (width, corner_width)])
-    cv2.drawContours(mask, [triangle1], 0, 0, -1)
-    cv2.drawContours(mask, [triangle2], 0, 0, -1)
-    top_height = int(0.5 * height)
-    cv2.rectangle(mask, (0, 0), (width, top_height), 0, -1)
-    bottom_height = int(0.9 * height)
-    cv2.rectangle(mask, (0, bottom_height), (width, height), 0, -1)
-    return mask
+def make_points(image, line):
+    slope, intercept = line
+    y1 = int(image.shape[0])
+    y2 = int(y1*3/5)         
+    x1 = int((y1 - intercept)/slope)
+    x2 = int((y2 - intercept)/slope)
+    return [[x1, y1, x2, y2]]
 
-def process_degs(degs,tryway,looking):
+def average_slope_intercept(image, lines):
+    left_fit    = []
+    right_fit   = []
+    if lines is None:
+        return None
+    for line in lines:
+        for x1, y1, x2, y2 in line:
+            fit = np.polyfit((x1,x2), (y1,y2), 1)
+            slope = fit[0]
+            intercept = fit[1]
+            if slope < 0: 
+                left_fit.append((slope, intercept))
+            else:
+                right_fit.append((slope, intercept))
+    left_fit_average  = np.average(left_fit, axis=0)
+    right_fit_average = np.average(right_fit, axis=0)
+    left_line  = make_points(image, left_fit_average)
+    right_line = make_points(image, right_fit_average)
+    averaged_lines = [left_line, right_line]
+    return averaged_lines
+
+def display_lines(img,lines):
+    line_image = np.zeros_like(img)
+    lnr = 0
+    lns = 0
+    if lines is not None:
+        for line in lines:
+            for x1, y1, x2, y2 in line:
+                cv2.line(line_image,(x1,y1),(x2,y2),(255,255,255),10)
+                lnr += 1
+                lns += (x1+x2)/2
+
+    h,w = line_image.shape[:2]
+
+    cv2.line(line_image,(int(w/2),y1),(int(w/2),y2),(0,0,255),5)
+    cv2.line(line_image,(int(lns/lnr),y1),(int(lns/lnr),y2),(255,0,0),5)
+
+    return line_image, w/2,lns/lnr
+
+def region_of_interest(canny):
+    height = canny.shape[0]
+    width = canny.shape[1]
+    mask = np.zeros_like(canny)
+    triangle = np.array([[
+    (int(0.0*width), int(height)),
+    (int(width/2), 0),
+    (int(1.0*width), int(height)),]], np.int32)
+    cv2.fillPoly(mask, triangle, 255)
+    masked_image = cv2.bitwise_and(canny, mask)
+    return masked_image
+
+# def region_of_interest(canny):
+#     height = canny.shape[0]
+#     width = canny.shape[1]
+#     print(width)
+#     print(height)
+#     mask = np.zeros_like(canny)
+
+#     triangle = np.array([[
+#     (int((200*width)/1280), height),
+#     (int((550*width)/1280), int(250*height/720)),
+#     (int((1100*width)/1280), height),]], np.int32)
+
+#     cv2.fillPoly(mask, triangle, 255)
+#     masked_image = cv2.bitwise_and(canny, mask)
+#     return masked_image
+
+def test_lines(cropped_canny,lnthrsh,frame):
+    lines = cv2.HoughLinesP(cropped_canny, 2, np.pi/180, lnthrsh, np.array([]), minLineLength=40,maxLineGap=50)
+    return average_slope_intercept(frame, lines)
+
+def process_degs(degs):
     val = int(degs/90 * 30)
     if val < 0:
         val = -val
     val = max(20,val)
-    val = min(val,30)
+    val = min(val,40)
     print('speed: ',val)
-    if degs == 1000:
-        if looking > 4:
-            brake()
-            time.sleep(0.5)
-            global detected_lines
-            global expectedRows
-            global whichside
-            if expectedRows <= len(detected_lines):
-                print('turn around')
-                spin_right(30,30)
-                time.sleep(2.4)
-                return tryway,0
-
-            elif whichside == True:
-                whichside = False
-                r_o_l = 1000
-                servo_init()
-                print('Turning right')
-                run(30,30)
-                time.sleep(1.4)
-                spin_right(30,30)
-                time.sleep(1.2)
-                leftrightservo_appointed_detection(47)
-                run(30,30)
-                time.sleep(0.6)
-                brake()
-                time.sleep(1)
-                while r_o_l > 12 or r_o_l < -12:
-                    r_o_l = process_contours()
-                    if r_o_l < 30 and r_o_l > -30:
-                        run(30,30)
-                        time.sleep(0.05)
-                        brake()
-                        time.sleep(0.05)
-                    else:
-                        run(30,30)
-                        time.sleep(0.2)
-                        brake()
-                        time.sleep(0.2)
-                servo_init()
-                spin_right(30,30)
-                time.sleep(0.8)
-                brake()
-                return tryway,0
-               
-            elif whichside == False:
-                whichside = True
-                r_o_l = 1000
-                servo_init()
-                print('Turning left')
-                run(30,30)
-                time.sleep(1.4)
-                spin_left(30,30)
-                time.sleep(1.2)
-                leftrightservo_appointed_detection(270)
-                run(30,30)
-                time.sleep(0.6)
-                brake()
-                time.sleep(1)
-                while r_o_l > 12 or r_o_l < -12:
-                    r_o_l = process_contours()
-                    if r_o_l < 30 and r_o_l > -30:
-                        run(30,30)
-                        time.sleep(0.05)
-                        brake()
-                        time.sleep(0.05)
-                    else:
-                        run(30,30)
-                        time.sleep(0.2)
-                        brake()
-                        time.sleep(0.2)
-                servo_init()
-                spin_left(30,30)
-                time.sleep(1.1)
-                brake()
-                return tryway,0
-        elif tryway == True:
-            print('looking')
-            looking +=1
-            spin_right(30,30)
-            time.sleep(0.05)
-            return False, looking
-        elif tryway == False:
-            print('looking')
-            looking +=1
-            spin_left(30,30)
-            time.sleep(0.05)
-            return True, looking
-
-    elif degs < 8 and degs > -8:
+    if degs < 8 and degs > -8:
         run(val,val)
         time.sleep(0.12)
     elif degs < 0:
@@ -280,7 +252,6 @@ def process_degs(degs,tryway,looking):
     elif degs > 0:
         spin_left(val,val)
         time.sleep(0.04) 
-    return tryway, 0
 
 def process_contours():
     global last_frame, runner
@@ -288,69 +259,43 @@ def process_contours():
         with frame_locker:
             frame = last_frame
         if frame is not None:
-            image = last_frame
-            height,width,_ = image.shape
-            img = image
-            image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-            image = cv2.GaussianBlur(image, (7, 7), 0)
-            _, image = cv2.threshold(image, 90, 255, cv2.THRESH_BINARY_INV)
+            good = 0
+            cnt += 1
+            img = cv2.resize(frame,(600,300))
+            gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+            kernel = 5
+            blur = cv2.GaussianBlur(gray,(kernel, kernel),0)
+            canny = cv2.Canny(gray, 50, 150)
+            # cv2.imshow('canny', canny)
+            # cv2.imwrite(f"C:/Users/apant/Documents/Capstone/LaneVid/cannyimg_{str(cnt).zfill(8)}.png",canny)
+            cropped_canny = region_of_interest(canny)
+            lnthrsh = 80
+            width = cropped_canny.shape[1]
+            while good ==0 and lnthrsh > 10:
+                try:
+                    average_lines = test_lines(cropped_canny,lnthrsh, img)
+                    line_image, midx,avgX = display_lines(img, average_lines)
+                    good = 1
+                except:
+                    lnthrsh -= 7
+                    good = 0
+                    print('retry')
 
-            corner_mask = mask_top_corners(image) 
-            final_mask = cv2.bitwise_and(image, corner_mask)
-            kernel = np.ones((11, 11), np.uint8)
-            mask_cleaned = cv2.morphologyEx(final_mask, cv2.MORPH_OPEN, kernel)
-            image = cv2.morphologyEx(mask_cleaned, cv2.MORPH_CLOSE, kernel)
+            deg = (avgX - midx) * 90 / (midx*2)
+            if deg > 90:
+                deg = deg % 90
+            elif deg < -90:
+                deg = deg % -90
 
-            contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            final_cont = 0
-            for contour in contours:
-                contour_area = cv2.contourArea(contour)
-                if int(width*height*0.01) < contour_area < int(width*height*.4):
-                    contourA = contour_area
-                    final_cont = contour
-                    break
-            
-            for contour in contours:
-                contour_area = cv2.contourArea(contour)
-                if int(width*height*0.01) < contour_area < int(width*height*.4):
-                    if contour_area > contourA:
-                        contourA = contour_area
-                        final_cont = contour
-            try:
-                mask = np.zeros_like(image)
-                cv2.drawContours(mask, [final_cont], -1, (255, 255, 255), thickness=cv2.FILLED)
-                # Find the centroid of the contour
-                M = cv2.moments(final_cont)
-                if M["m00"] != 0:
-                   cX = int(M["m10"] / M["m00"])
-                   cY = int(M["m01"] / M["m00"])
-                else:
-                   cX, cY = 0, 0
+            # combo_image = cv2.addWeighted(img, 0.8, line_image, 1, 1)
+            # cv2.imshow("result", combo_image)
+            # cv2.imwrite(f"C:/Users/apant/Documents/Capstone/LaneVid/comboimg_{str(cnt).zfill(8)}.png",combo_image)
 
-                # Draw a circle at the centroid on the original image
-                img_with_circle = cv2.circle(img.copy(), (cX, cY), 5, (0, 0, 255), -1)
-
-                # Show the image with the contour and centroid
-                # cv2.imshow("Image with path and center", img_with_circle)
-
-                cv2.imshow('mask',mask)
-
-                cv2.waitKey(1)
-                # cv2.destroyAllWindows()
-
-                r_o_l = int(width / 2) - cX
-                r_o_l = r_o_l * 90 / width
-                if r_o_l > 0:
-                    print("Go Left degs:", r_o_l)
-                elif r_o_l < 0:
-                    print('Go Right degs:', r_o_l)
-                else:
-                    print("Go Straight")
-            except:
-                r_o_l = 1000
-            return r_o_l
-    return 1000
-
+            print(f'Degs: {deg}')
+            return deg
+        else:
+            print('No Frame Received...')
+            return 0
 
 def get_frame():
     global last_frame, runner
@@ -372,8 +317,6 @@ def get_frame():
         print("The demo requires Depth camera with Color sensor")
         exit(0)
 
-    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-
     if device_product_line == 'L500':
         config.enable_stream(rs.stream.color, 960, 540, rs.format.bgr8, 30)
     else:
@@ -386,14 +329,11 @@ def get_frame():
         while runner:
 
             frames = pipeline.wait_for_frames()
-            # depth_frame = frames.get_depth_frame()
             color_frame = frames.get_color_frame()
             if not color_frame:
                 continue
-
             color_image = np.asanyarray(color_frame.get_data())
-
-            cv2.imshow('RealSense', color_image)
+            # cv2.imshow('RealSense', color_image)
             # cv2.waitKey(1)
             with frame_locker:
                 last_frame = color_image
@@ -401,9 +341,6 @@ def get_frame():
     finally:
         pipeline.stop()
 
-detected_lines = []
-tryway = False 
-looking = 0
 last_frame = None
 runner = True
 how_do_you_feel = True
@@ -414,16 +351,16 @@ servo_init()
 # servo_left()
 # servo_right()
 
-expectedRows = input('How many rows? (as an integer)')
-while how_do_you_feel == True:
+grabThread = threading.Thread(target=get_frame)
+grabThread.start()
+
+while how_do_you_feel:
     try:    
-        grabThread = threading.Thread(target=get_frame)
-        grabThread.start()
-        # r_o_l = process_contours()
-        # tryway, looking = process_degs(r_o_l, tryway, looking)
-        # cv2.imshow("Camera Feed", last_frame)
-        # brake()
-        # time.sleep(1)
+        r_o_l = process_contours()
+        process_degs(r_o_l)
+        cv2.imshow("Camera Feed", last_frame)
+        brake()
+        time.sleep(1)
     except KeyboardInterrupt:
         how_do_you_feel = False
         runner = False
