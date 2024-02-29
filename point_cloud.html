@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Point Cloud Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            width: 100%;
+            height: 80%;
+            display: block;
+        }
+        #inputArea {
+            width: 100%;
+            height: 20%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="fileInput" accept=".txt,.xyz,.csv"> <!-- Allow users to upload .txt, .xyz, or .csv files -->
+    <textarea id="inputArea" placeholder="Enter point cloud data (XYZ coordinates, one point per line)"></textarea>
+    <button id="renderButton">Render</button>
+    <canvas id="webgl_canvas"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+    <script>
+        window.onload = function() {
+            var canvas = document.getElementById('webgl_canvas');
+            var gl = canvas.getContext('webgl');
+            var lastMouseX, lastMouseY;
+            var modelViewMatrix = mat4.create();
+            var vertices = []; // Array to store vertex data
+            var zoomFactor = 1.0;
+
+            document.getElementById('fileInput').addEventListener('change', function(event) {
+                var file = event.target.files[0];
+                var reader = new FileReader();
+
+                reader.onload = function(e) {
+                    var pointCloudData = e.target.result;
+                    parsePointCloudData(pointCloudData);
+                    renderPointCloud();
+                };
+
+                reader.readAsText(file);
+            });
+
+            document.getElementById('renderButton').addEventListener('click', function() {
+                var pointCloudData = document.getElementById('inputArea').value;
+                parsePointCloudData(pointCloudData);
+                renderPointCloud();
+            });
+
+            canvas.addEventListener('mousedown', function(event) {
+                lastMouseX = event.clientX;
+                lastMouseY = event.clientY;
+                document.addEventListener('mousemove', mouseMoveHandler, false);
+            });
+
+            document.addEventListener('mouseup', function(event) {
+                document.removeEventListener('mousemove', mouseMoveHandler, false);
+            });
+
+            canvas.addEventListener('wheel', function(event) {
+                zoomFactor += event.deltaY * 0.01;
+                if (zoomFactor < 0.1) zoomFactor = 0.1; // Limit zoom factor to prevent excessive zooming
+                renderPointCloud();
+            });
+
+            function mouseMoveHandler(event) {
+                var deltaX = event.clientX - lastMouseX;
+                var deltaY = event.clientY - lastMouseY;
+
+                // Rotate around Y-axis based on mouse movement
+                mat4.rotateY(modelViewMatrix, modelViewMatrix, degToRad(deltaX / 5));
+
+                // Rotate around X-axis based on mouse movement
+                mat4.rotateX(modelViewMatrix, modelViewMatrix, degToRad(deltaY / 5));
+
+                lastMouseX = event.clientX;
+                lastMouseY = event.clientY;
+
+                renderPointCloud(); // Render the point cloud with updated model-view matrix
+            }
+
+            function parsePointCloudData(data) {
+                vertices = []; // Clear previous vertex data
+                var lines = data.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                    var parts = lines[i].trim().split(/\s+/);
+                    if (parts.length >= 3) {
+                        var x = parseFloat(parts[0]);
+                        var y = parseFloat(parts[1]);
+                        var z = parseFloat(parts[2]);
+                        vertices.push(x, y, z);
+                    }
+                }
+            }
+
+            function renderPointCloud() {
+                gl.clearColor(1.0, 1.0, 1.0, 1.0); // Set clear color to white
+                gl.clear(gl.COLOR_BUFFER_BIT); // Clear the canvas
+                
+                // Define vertex shader code
+                var vertexShaderCode = `
+                    attribute vec3 coordinates;
+                    uniform mat4 modelViewMatrix;
+                    void main(void) {
+                        gl_Position = modelViewMatrix * vec4(coordinates, 1.0);
+                        gl_PointSize = 1.0 / gl_Position.w; // Adjust point size based on distance
+                    }
+                `;
+                
+                // Define fragment shader code
+                var fragmentShaderCode = `
+                    void main(void) {
+                        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Set point color to black
+                    }
+                `;
+                
+                // Create and compile vertex shader
+                var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                gl.shaderSource(vertexShader, vertexShaderCode);
+                gl.compileShader(vertexShader);
+                
+                // Create and compile fragment shader
+                var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+                gl.shaderSource(fragmentShader, fragmentShaderCode);
+                gl.compileShader(fragmentShader);
+                
+                // Create shader program
+                var shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertexShader);
+                gl.attachShader(shaderProgram, fragmentShader);
+                gl.linkProgram(shaderProgram);
+                gl.useProgram(shaderProgram);
+                
+                // Pass the model-view matrix to the vertex shader
+                var modelViewMatrixUniform = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
+                
+                // Apply zoom factor to the model-view matrix
+                var scaledModelViewMatrix = mat4.create();
+                mat4.copy(scaledModelViewMatrix, modelViewMatrix);
+                mat4.scale(scaledModelViewMatrix, scaledModelViewMatrix, [zoomFactor, zoomFactor, zoomFactor]);
+                gl.uniformMatrix4fv(modelViewMatrixUniform, false, scaledModelViewMatrix);
+                
+                // Create vertex buffer
+                var vertexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+                
+                // Specify the layout of the vertex buffer
+                var coord = gl.getAttribLocation(shaderProgram, "coordinates");
+                gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(coord);
+                
+                // Draw the points
+                gl.drawArrays(gl.POINTS, 0, vertices.length / 3);
+
+                // Render axes
+                var axesVertices = [
+                    0, 0, 0,  1, 0, 0,  // X-axis
+                    0, 0, 0,  0, 1, 0,  // Y-axis
+                    0, 0, 0,  0, 0, 1   // Z-axis
+                ];
+                var axesBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, axesBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(axesVertices), gl.STATIC_DRAW);
+                gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(coord);
+
+                // Set colors for the axes
+                var colors = [
+                    1.0, 0.0, 0.0, // Red for X-axis
+                    0.0, 1.0, 0.0, // Green for Y-axis
+                    0.0, 0.0, 1.0  // Blue for Z-axis
+                ];
+                var colorAttrib = gl.getUniformLocation(shaderProgram, "color");
+                gl.uniform3fv(colorAttrib, colors);
+
+                gl.drawArrays(gl.LINES, 0, 6);
+            }            
+
+            // Utility function to convert degrees to radians
+            function degToRad(degrees) {
+                return degrees * Math.PI / 180;
+            }
+        };
+    </script>
+</body>
+</html>
