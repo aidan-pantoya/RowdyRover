@@ -282,7 +282,7 @@ while True:
             raise ValueError
         break
     except ValueError:
-        print("Incorrect value entered")
+        print("Invalid value entered")
 #delay 2s   
 time.sleep(2)
 
