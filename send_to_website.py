@@ -19,27 +19,28 @@ def check_url_availability(url):
     finally:
         return flag
 
-
 name = str(input("Enter username: "))
+#custom_header = {'Text': 'Status'}
 
 # URL of your Flask server
-url = f'https://www.rowdy-rover.com/user/{name}'
+url = f'https://www.rowdy-rover.com/user/{name}/data'
 
 while check_url_availability(url):
     print("Invalid URL")
     name = str(input("Enter username: "))
-    # URL of your Flask server
-    url = 'https://www.rowdy-rover.com/user/{name}'
+    url = f'https://www.rowdy-rover.com/user/{name}/data'
 
 # Data to send
 with open("temp.txt", 'w') as file:
     file.write("Gay")
+
 # Sending a POST request with data
-files = {'file': open("temp.txt", 'rb')}  # Open the file in binary mode
-response = requests.post(url, files=files, headers={'Content-Type': 'application/json'})
+with open('temp.txt', 'rb') as file:
+    files = file  # Open the file in binary mode
+response = requests.post(url, files=files)
+
 # Check response
 if response.status_code == 200:
     print("Data sent successfully")
 else:
-    print("Failed to send data")
-    print(response.status_code)
+    print("Failed to send data", response.status_code)
