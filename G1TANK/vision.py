@@ -1,5 +1,5 @@
 #-*- coding:UTF-8 -*-
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 from ultralytics import YOLO
 import cv2
