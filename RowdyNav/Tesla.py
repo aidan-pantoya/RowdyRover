@@ -8,7 +8,7 @@ import math
 import threading
 
 
-model = YOLO("C:/Users/apant/Downloads/RowdyNav/yolov8n.pt")
+model = YOLO("/home/ubuntu/rowdy/yolov8n.pt")
 
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
   "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
@@ -191,144 +191,166 @@ def servo_appointed_detection(pos):
     for i in range(18):
         pwm_servo.ChangeDutyCycle(2.5 + 10 * pos/180)   
         
-def get_frame():
-    global last_frame
-    cap = cv2.VideoCapture(0)
-    cap.set(3, 600)
-    cap.set(4, 500)
-    cap.set(5, 30)  # Set frame
-    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
-    cap.set(cv2.CAP_PROP_BRIGHTNESS, 10)  # Set brightness. Range: -64 to 64
-    cap.set(cv2.CAP_PROP_CONTRAST, 15)  # Set contrast. Range: -64 to 64
+# def get_frame():
+#     global last_frame, success
+#     cap = cv2.VideoCapture(0)
+#     cap.set(3, 600)
+#     cap.set(4, 500)
+#     cap.set(5, 30)  # Set frame
+#     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
+#     cap.set(cv2.CAP_PROP_BRIGHTNESS, 10)  # Set brightness. Range: -64 to 64
+#     cap.set(cv2.CAP_PROP_CONTRAST, 15)  # Set contrast. Range: -64 to 64
 
-    while True:
-        ret,frame = cap.read()
-        if not ret:
-            break
-        with frame_locker:
-            last_frame = frame
-    cap.release()
+#     while True:
+#         ret,frame = cap.read()
+#         with frame_locker:
+#             success,last_frame = ret,frame
+#     cap.release()
 
-last_frame = None
-frame_locker = threading.Lock()
+
+
+cap = cv2.VideoCapture(-1)
+cap.set(3, 600)
+cap.set(4, 500)
+cap.set(5, 30)  # Set frame
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
+cap.set(cv2.CAP_PROP_BRIGHTNESS, 10)  # Set brightness. Range: -64 to 64
+cap.set(cv2.CAP_PROP_CONTRAST, 15)  # Set contrast. Range: -64 to 64
+
+# last_frame = None
+# success = None
+# frame_locker = threading.Lock()
 
 try:
     init()
-    grabThread = threading.Thread(target=get_frame)
-    grabThread.start()
+    # grabThread = threading.Thread(target=get_frame)
+    # grabThread.start()
 
     while True:
-        time.sleep(0.1)
-        brake()
-
-        with frame_locker:
-            img = last_frame
-        
-        results = model(img, stream=True)
-        img_height, img_width, _ = img.shape
-
-
-        objects_left, objects_right, objects_center = 0, 0, 0
-
-        for r in results:
-            boxes = r.boxes
-
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) 
-                cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
-
-                confidence = math.ceil((box.conf[0]*100))/100
-                cls = int(box.cls[0])
-
-                org = (x1, y1)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(img, f'{classNames[cls]} {confidence}', org, font, 1, (255, 0, 0), 2)
-
-
-                center_x = (x1 + x2) / 2
-                if center_x < img_width / 3:
-                    objects_left += 1
-                elif center_x > 2 * img_width / 3:
-                    objects_right += 1
-                else:
-                    objects_center += 1
-
-        cv2.imshow('Webcam', img)
-
-        print(f'objects: L:{objects_left}, C:{objects_center}, R:{objects_right}')
-    
-        servo_appointed_detection(90)
-        distance = Distance_test()
-        if distance > 60 and objects_center == 0:
-            run(35, 35)
-
-        elif 40 <= distance and distance <= 60 and objects_center == 0:
-            run(15, 15)
-
-        elif distance < 40 or objects_center > 0:
-            GPIO.output(LED_R, GPIO.HIGH)
-            GPIO.output(LED_G, GPIO.LOW)
-            GPIO.output(LED_B, GPIO.LOW)
-            back(20, 20)
-            time.sleep(0.08)
+        # try:
+            time.sleep(0.1)
             brake()
+
+            # goodframe,img = success,last_frame
+            for _ in range(10):
+                success, img = cap.read()
             
-            servo_appointed_detection(30)
-            time.sleep(0.8)
-            rightdistance = Distance_test()
-          
-            servo_appointed_detection(150)
-            time.sleep(0.8)
-            leftdistance = Distance_test()
+            if success:
+
+                results = model(img, stream=True)
+                img_height, img_width, _ = img.shape
+
+
+                objects_left, objects_right, objects_center = 0, 0, 0
+
+                for r in results:
+                    boxes = r.boxes
+
+                    for box in boxes:
+                        x1, y1, x2, y2 = box.xyxy[0]
+                        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) 
+                        cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
+
+                        confidence = math.ceil((box.conf[0]*100))/100
+                        cls = int(box.cls[0])
+
+                        org = (x1, y1)
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        cv2.putText(img, f'{classNames[cls]} {confidence}', org, font, 1, (255, 0, 0), 2)
+
+
+                        center_x = (x1 + x2) / 2
+                        if center_x < img_width / 3:
+                            objects_left += 1
+                        elif center_x > 2 * img_width / 3:
+                            objects_right += 1
+                        else:
+                            objects_center += 1
+
+                cv2.imshow('Webcam', img)
+                cv2.waitKey(1)
+
+                print(f'objects: L:{objects_left}, C:{objects_center}, R:{objects_right}')
+        
+            else:
+                objects_left = 0
+                objects_right = 0
+                objects_center = 0
 
             servo_appointed_detection(90)
-            time.sleep(0.8)
-            frontdistance = Distance_test()
-         
-            if leftdistance < 40 and rightdistance < 40 and frontdistance < 40:
+            distance = Distance_test()
+            if distance > 60 and objects_center == 0:
+                run(35, 35)
+
+            elif 40 <= distance and distance <= 60 and objects_center == 0:
+                run(15, 15)
+
+            elif distance < 40 or objects_center > 0:
+                GPIO.output(LED_R, GPIO.HIGH)
+                GPIO.output(LED_G, GPIO.LOW)
+                GPIO.output(LED_B, GPIO.LOW)
+                back(20, 20)
+                time.sleep(0.08)
+                brake()
+                
+                servo_appointed_detection(30)
+                time.sleep(0.8)
+                rightdistance = Distance_test()
+              
+                servo_appointed_detection(150)
+                time.sleep(0.8)
+                leftdistance = Distance_test()
+
+                servo_appointed_detection(90)
+                time.sleep(0.8)
+                frontdistance = Distance_test()
+             
+                if leftdistance < 40 and rightdistance < 40 and frontdistance < 40:
+                    #Magenta
+                    GPIO.output(LED_R, GPIO.HIGH)
+                    GPIO.output(LED_G, GPIO.LOW)
+                    GPIO.output(LED_B, GPIO.HIGH)
+                    spin_right(45, 45)
+                    time.sleep(0.58)
+                elif leftdistance >= rightdistance and objects_right > objects_left:
+                #Blue
+                    GPIO.output(LED_R, GPIO.LOW)
+                    GPIO.output(LED_G, GPIO.LOW)
+                    GPIO.output(LED_B, GPIO.HIGH)
+                    spin_left(45, 45)
+                    time.sleep(0.28)
+                elif leftdistance <= rightdistance and objects_left > objects_right:
                 #Magenta
-                GPIO.output(LED_R, GPIO.HIGH)
-                GPIO.output(LED_G, GPIO.LOW)
-                GPIO.output(LED_B, GPIO.HIGH)
-                spin_right(45, 45)
-                time.sleep(0.58)
-            elif leftdistance >= rightdistance and objects_right > objects_left:
-            #Blue
-                GPIO.output(LED_R, GPIO.LOW)
-                GPIO.output(LED_G, GPIO.LOW)
-                GPIO.output(LED_B, GPIO.HIGH)
-                spin_left(45, 45)
-                time.sleep(0.28)
-            elif leftdistance <= rightdistance and objects_left > objects_right:
-            #Magenta
-                GPIO.output(LED_R, GPIO.HIGH)
-                GPIO.output(LED_G, GPIO.LOW)
-                GPIO.output(LED_B, GPIO.HIGH)
-                spin_right(45, 45)
-                time.sleep(0.28)
+                    GPIO.output(LED_R, GPIO.HIGH)
+                    GPIO.output(LED_G, GPIO.LOW)
+                    GPIO.output(LED_B, GPIO.HIGH)
+                    spin_right(45, 45)
+                    time.sleep(0.28)
 
-            elif leftdistance >= rightdistance or objects_right > objects_left:
-            #Blue
-                back(50, 50)
-                GPIO.output(LED_R, GPIO.LOW)
-                GPIO.output(LED_G, GPIO.LOW)
-                GPIO.output(LED_B, GPIO.HIGH)
-                spin_left(45, 45)
-                time.sleep(0.28)
+                elif leftdistance >= rightdistance or objects_right > objects_left:
+                #Blue
+                    back(50, 50)
+                    GPIO.output(LED_R, GPIO.LOW)
+                    GPIO.output(LED_G, GPIO.LOW)
+                    GPIO.output(LED_B, GPIO.HIGH)
+                    spin_left(45, 45)
+                    time.sleep(0.28)
 
-            elif leftdistance <= rightdistance or objects_left > objects_right:
-            #Magenta
-                back(50, 50)
-                GPIO.output(LED_R, GPIO.HIGH)
-                GPIO.output(LED_G, GPIO.LOW)
-                GPIO.output(LED_B, GPIO.HIGH)
-                spin_right(45, 45)
-                time.sleep(0.28)
-
+                elif leftdistance <= rightdistance or objects_left > objects_right:
+                #Magenta
+                    back(50, 50)
+                    GPIO.output(LED_R, GPIO.HIGH)
+                    GPIO.output(LED_G, GPIO.LOW)
+                    GPIO.output(LED_B, GPIO.HIGH)
+                    spin_right(45, 45)
+                    time.sleep(0.28)
+        # except:
+            # continue
 except KeyboardInterrupt:
     pass
 
+
+cap.release()
 
 pwm_ENA.stop()
 pwm_ENB.stop()
