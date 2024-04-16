@@ -195,20 +195,17 @@ try:
 
     servo_appointed_detection(90)
     while True:
-            spin_right(8,8)
-            time.sleep(random.randint(1,2))
-            brake()
-            
             choice = random.randint(1,4)
-            if choice == 1:
+            if choice == 1 and prev_choice != 4:
                 run(15,15)
-            elif choice == 2:
+            elif choice == 2 and prev_choice != 3:
                 spin_right(8,8)
-            elif choice == 3:
+            elif choice == 3 and prev_choice != 2:
                 spin_left(8,8)
-            elif choice == 4:
+            elif choice == 4 and prev_choice != 1:
                 back(15,15)
             time.sleep(random.randint(1,2))
+            prev_choice = choice
             
             distance = Distance_test()
             if distance < 40:
@@ -220,11 +217,7 @@ except KeyboardInterrupt:
     pass
 
 
-cap.release()
-
 pwm_ENA.stop()
 pwm_ENB.stop()
 pwm_servo.stop()
 GPIO.cleanup()
-
-cv2.destroyAllWindows()
