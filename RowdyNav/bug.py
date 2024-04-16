@@ -4,6 +4,7 @@ from ultralytics import YOLO
 import cv2
 import math 
 import threading
+import random
 
 model = YOLO("/home/ubuntu/rowdy/yolov8n.pt")
 
@@ -187,83 +188,33 @@ def servo_appointed_detection(pos):
     for i in range(18):
         pwm_servo.ChangeDutyCycle(2.5 + 10 * pos/180)
         
-def searching():
-    for _ in range(10):
-        success, img = cap.read()
-    if success:
-        results = model(img, stream=True)
-        img_height, img_width, _ = img.shape
 
-        objects_left, objects_right, objects_center = 0, 0, 0
-        for r in results:
-            boxes = r.boxes
-
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) 
-                cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
-
-                confidence = math.ceil((box.conf[0]*100))/100
-                cls = int(box.cls[0])
-
-                org = (x1, y1)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(img, f'{classNames[cls]} {confidence}', org, font, 1, (255, 0, 0), 2)
-
-
-                center_x = (x1 + x2) / 2
-                if center_x < img_width / 3:
-                    objects_left += 1
-                elif center_x > 2 * img_width / 3:
-                    objects_right += 1
-                else:
-                    objects_center += 1
-                if objects_center + objects_left + objects_right >= 1:
-                    return False
-
-        cv2.imshow('Webcam', img)
-        cv2.waitKey(1)
-
-        print(f'objects: L:{objects_left}, C:{objects_center}, R:{objects_right}')
-
-    else:
-        objects_left = 0
-        objects_right = 0
-        objects_center = 0
-    return True
-
-cap = cv2.VideoCapture(-1)
-cap.set(3, 600)
-cap.set(4, 500)
-cap.set(5, 30)  # Set frame
-cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
-cap.set(cv2.CAP_PROP_BRIGHTNESS, 10)  # Set brightness. Range: -64 to 64
-cap.set(cv2.CAP_PROP_CONTRAST, 15)  # Set contrast. Range: -64 to 64
 
 try:
     init()
 
+    servo_appointed_detection(90)
     while True:
             spin_right(8,8)
-            time.sleep(20)
+            time.sleep(random.randint(1,2))
             brake()
             
-            while searching():
-                spin_right(8,8)
-                time.sleep(1)
-                brake()
-            servo_appointed_detection(90)
-            distance = Distance_test()
-            while distance > 40:
+            choice = random.randint(1,4)
+            if choice == 1:
                 run(15,15)
-                distance = Distance_test()
-                if distance < 40:
-                    GPIO.output(LED_R, GPIO.HIGH)
-                    GPIO.output(LED_G, GPIO.LOW)
-                    GPIO.output(LED_B, GPIO.LOW)
-                    back(20, 20)
-                    time.sleep(0.08)
-                    brake()
+            elif choice == 2:
+                spin_right(8,8)
+            elif choice == 3:
+                spin_left(8,8)
+            elif choice == 4:
+                back(15,15)
+            time.sleep(random.randint(1,2))
+            
+            distance = Distance_test()
+            if distance < 40:
+                back(15,15)
+                time.sleep(random.randint(1,2))
+                
 
 except KeyboardInterrupt:
     pass
