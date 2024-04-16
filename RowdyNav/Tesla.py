@@ -220,7 +220,7 @@ cap.set(cv2.CAP_PROP_CONTRAST, 15)  # Set contrast. Range: -64 to 64
 # last_frame = None
 # success = None
 # frame_locker = threading.Lock()
-
+cnt = 0
 try:
     init()
     # grabThread = threading.Thread(target=get_frame)
@@ -239,7 +239,6 @@ try:
 
                 results = model(img, stream=True)
                 img_height, img_width, _ = img.shape
-
 
                 objects_left, objects_right, objects_center = 0, 0, 0
 
@@ -266,8 +265,9 @@ try:
                             objects_right += 1
                         else:
                             objects_center += 1
-
+                cnt +=1
                 cv2.imshow('Webcam', img)
+                cv2.imwrite(f"NoBear_{str(cnt).zfill(7)}.png",img)
                 cv2.waitKey(1)
 
                 print(f'objects: L:{objects_left}, C:{objects_center}, R:{objects_right}')
@@ -279,13 +279,16 @@ try:
 
             servo_appointed_detection(90)
             distance = Distance_test()
-            if distance > 60 and objects_center == 0:
-                run(35, 35)
+            if distance > 60:
+                run(50, 35)
 
-            elif 40 <= distance and distance <= 60 and objects_center == 0:
-                run(15, 15)
+            elif 50 <= distance and distance <= 60:
+                run(40, 25)
 
-            elif distance < 40 or objects_center > 0:
+            elif 45 <= distance and distance <= 50 and objects_center == 0:
+                run(30, 15)
+
+            elif distance < 45 or objects_center > 0:
                 GPIO.output(LED_R, GPIO.HIGH)
                 GPIO.output(LED_G, GPIO.LOW)
                 GPIO.output(LED_B, GPIO.LOW)
@@ -311,21 +314,23 @@ try:
                     GPIO.output(LED_G, GPIO.LOW)
                     GPIO.output(LED_B, GPIO.HIGH)
                     spin_right(45, 45)
-                    time.sleep(0.58)
-                elif leftdistance >= rightdistance and objects_right > objects_left:
+                    time.sleep(0.58/2)
+                    
+                elif leftdistance >= rightdistance and objects_right >= objects_left:
                 #Blue
                     GPIO.output(LED_R, GPIO.LOW)
                     GPIO.output(LED_G, GPIO.LOW)
                     GPIO.output(LED_B, GPIO.HIGH)
                     spin_left(45, 45)
-                    time.sleep(0.28)
-                elif leftdistance <= rightdistance and objects_left > objects_right:
+                    time.sleep(0.28/2)
+
+                elif leftdistance <= rightdistance and objects_left >= objects_right:
                 #Magenta
                     GPIO.output(LED_R, GPIO.HIGH)
                     GPIO.output(LED_G, GPIO.LOW)
                     GPIO.output(LED_B, GPIO.HIGH)
                     spin_right(45, 45)
-                    time.sleep(0.28)
+                    time.sleep(0.28/2)
 
                 elif leftdistance >= rightdistance or objects_right > objects_left:
                 #Blue
@@ -334,7 +339,7 @@ try:
                     GPIO.output(LED_G, GPIO.LOW)
                     GPIO.output(LED_B, GPIO.HIGH)
                     spin_left(45, 45)
-                    time.sleep(0.28)
+                    time.sleep(0.28/2)
 
                 elif leftdistance <= rightdistance or objects_left > objects_right:
                 #Magenta
@@ -343,7 +348,7 @@ try:
                     GPIO.output(LED_G, GPIO.LOW)
                     GPIO.output(LED_B, GPIO.HIGH)
                     spin_right(45, 45)
-                    time.sleep(0.28)
+                    time.sleep(0.28/2)
         # except:
             # continue
 except KeyboardInterrupt:
