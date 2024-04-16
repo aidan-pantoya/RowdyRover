@@ -192,10 +192,11 @@ def servo_appointed_detection(pos):
 
 try:
     init()
-
+    prev_choice = 0
     servo_appointed_detection(90)
     while True:
             choice = random.randint(1,4)
+            
             if choice == 1 and prev_choice != 4:
                 run(15,15)
             elif choice == 2 and prev_choice != 3:
