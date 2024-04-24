@@ -123,22 +123,6 @@ def avoid():
        GPIO.output(IN3, GPIO.LOW)
        GPIO.output(IN4, GPIO.LOW)
 
-    #Ultrasonic function
-    '''
-    def Distance_test():
-        GPIO.output(TrigPin,GPIO.HIGH)
-        time.sleep(0.000015)
-        GPIO.output(TrigPin,GPIO.LOW)
-        while not GPIO.input(EchoPin):
-            pass
-        t1 = time.time()
-        while GPIO.input(EchoPin):
-            pass
-        t2 = time.time()
-        print "distance is %d " % (((t2 - t1)* 340 / 2) * 100)
-        time.sleep(0.01)
-        return ((t2 - t1)* 340 / 2) * 100
-    '''
     def Distance():
         GPIO.output(TrigPin,GPIO.LOW)
         time.sleep(0.000002)
@@ -165,6 +149,7 @@ def avoid():
         time.sleep(0.01)
     #    print "distance is %d " % (((t2 - t1)* 340 / 2) * 100)
         return ((t2 - t1)* 340 / 2) * 100
+
     def Distance_test():
         num = 0
         ultrasonic = []
@@ -180,9 +165,34 @@ def avoid():
                 num = num + 1
                 time.sleep(0.01)
         print(ultrasonic)
-        distance = (ultrasonic[1] + ultrasonic[2] + ultrasonic[3])/3
+        distance = (ultrasonic[1] + ultrasonic[2]+ ultrasonic[3])/3
+
         print("distance is %f"%(distance) ) 
         return distance
+
+    def Distance_test_b():
+        num = 0
+        ultrasonic = []
+        while num < 5:
+                distance = Distance()
+                while int(distance) == -1 :
+                    distance = Distance()
+                    print("Tdistance is %f"%(distance) )
+                while (int(distance) >= 500 or int(distance) == 0) :
+                    distance = Distance()
+                    print("Edistance is %f"%(distance) )
+                ultrasonic.append(distance)
+                num = num + 1
+                time.sleep(0.01)
+        print(ultrasonic)
+        distance1 = ultrasonic[1] 
+
+        distance2 = ultrasonic[2]  
+
+        distance3 = ultrasonic[3]
+
+        print("distance is %f"%((distance1+distance2+distance3)/3) ) 
+        return distance1, distance2, distance3
         
     #The servo rotates to the specified angle
     def servo_appointed_detection(pos):
@@ -241,7 +251,7 @@ def avoid():
     time.sleep(2)
     U_input = 'nothin'
     signal.signal(signal.SIGALRM,t_h)
-
+    close = 0
     print("Enter 'Q' to end.")
     try:
         init()
@@ -254,12 +264,33 @@ def avoid():
             #     U_input = '747'
 
             servo_appointed_detection(90)
-            distance = Distance_test()
-            if distance > 60:
-                run(35, 35)
-            elif 40 <= distance <= 60:
-                run(15, 15)
-            elif distance < 40:
+            distance11,distance22,distance33 = 0,0,0
+            for xx in range(1,4):
+                distance1,distance2,distance3 = Distance_test_b()
+                distance11 += distance1
+                distance22 += distance2
+                distance33 += distance3
+
+            distance11 /=xx
+            distance22 /=xx
+            distance33 /=xx
+            print(f"{distance11}, {distance22}, {distance33}")
+
+            # if distance11 < 45 or distance22<45 or distance33 < 45:
+            #     close +=1
+
+            if distance11 > 42 and distance22 > 42 and distance33 > 42: #and close<3:
+            # if close < 3:
+                run(30, 30)
+            # elif 42 <= distance <= 60:
+                # run(15, 15)
+            # elif distance < 42:
+            elif distance11 < 30 or distance22 < 30 or distance33 < 30: 
+                back(30,30)
+                time.sleep(0.2)
+                servo_color_carstate()
+            else:    
+                close =0
                 servo_color_carstate()
            
     except KeyboardInterrupt:
