@@ -297,7 +297,6 @@ def Tesla_run():
                             box_width = x2 - x1
                             box_height = y2 - y1
                             
-                            # Calculate area
                             area = box_width * box_height
                             print(f"Area of box: {area}")
                             big_box = max(big_box,area)
@@ -363,69 +362,6 @@ def Tesla_run():
                     close =0
                     servo_color_carstate()
 
-                # elif distance < 45 or objects_center > 0:
-                #     GPIO.output(LED_R, GPIO.HIGH)
-                #     GPIO.output(LED_G, GPIO.LOW)
-                #     GPIO.output(LED_B, GPIO.LOW)
-                #     back(20, 20)
-                #     time.sleep(0.08)
-                #     brake()
-                    
-                #     servo_appointed_detection(30)
-                #     time.sleep(0.8)
-                #     rightdistance = Distance_test()
-                  
-                #     servo_appointed_detection(150)
-                #     time.sleep(0.8)
-                #     leftdistance = Distance_test()
-
-                #     servo_appointed_detection(90)
-                #     time.sleep(0.8)
-                #     frontdistance = Distance_test()
-                 
-                #     if leftdistance < 40 and rightdistance < 40 and frontdistance < 40:
-                #         #Magenta
-                #         GPIO.output(LED_R, GPIO.HIGH)
-                #         GPIO.output(LED_G, GPIO.LOW)
-                #         GPIO.output(LED_B, GPIO.HIGH)
-                #         spin_right(45, 45)
-                #         time.sleep(0.58/2)
-                        
-                #     elif leftdistance >= rightdistance and objects_right >= objects_left:
-                #     #Blue
-                #         GPIO.output(LED_R, GPIO.LOW)
-                #         GPIO.output(LED_G, GPIO.LOW)
-                #         GPIO.output(LED_B, GPIO.HIGH)
-                #         spin_left(45, 45)
-                #         time.sleep(0.28/2)
-
-                #     elif leftdistance <= rightdistance and objects_left >= objects_right:
-                #     #Magenta
-                #         GPIO.output(LED_R, GPIO.HIGH)
-                #         GPIO.output(LED_G, GPIO.LOW)
-                #         GPIO.output(LED_B, GPIO.HIGH)
-                #         spin_right(45, 45)
-                #         time.sleep(0.28/2)
-
-                #     elif leftdistance >= rightdistance or objects_right > objects_left:
-                #     #Blue
-                #         back(50, 50)
-                #         GPIO.output(LED_R, GPIO.LOW)
-                #         GPIO.output(LED_G, GPIO.LOW)
-                #         GPIO.output(LED_B, GPIO.HIGH)
-                #         spin_left(45, 45)
-                #         time.sleep(0.28/2)
-
-                #     elif leftdistance <= rightdistance or objects_left > objects_right:
-                #     #Magenta
-                #         back(50, 50)
-                #         GPIO.output(LED_R, GPIO.HIGH)
-                #         GPIO.output(LED_G, GPIO.LOW)
-                #         GPIO.output(LED_B, GPIO.HIGH)
-                #         spin_right(45, 45)
-                #         time.sleep(0.28/2)
-            # except:
-                # continue
     except KeyboardInterrupt:
         pass
 
