@@ -285,13 +285,26 @@ def Tesla_run():
                     img_height, img_width, _ = img.shape
 
                     objects_left, objects_right, objects_center = 0, 0, 0
-
+                    big_box = 0
+                    bottom_y = 0
                     for r in results:
                         boxes = r.boxes
 
                         for box in boxes:
                             x1, y1, x2, y2 = box.xyxy[0]
                             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2) 
+
+                            box_width = x2 - x1
+                            box_height = y2 - y1
+                            
+                            # Calculate area
+                            area = box_width * box_height
+                            print(f"Area of box: {area}")
+                            big_box = max(big_box,area)
+                            bottom_y = max(bottom_y,y2)
+                            bottom_y = max(bottom_y,y1)
+                            print(f'Bottom of object: {bottom_y}')
+
                             cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
 
                             confidence = math.ceil((box.conf[0]*100))/100
@@ -311,7 +324,7 @@ def Tesla_run():
                                 objects_center += 1
                     cnt +=1
                     cv2.imshow('Webcam', img)
-                    cv2.imwrite(f"NoBear_{str(cnt).zfill(7)}.png",img)
+                    # cv2.imwrite(f"TestingTesla_{str(cnt).zfill(7)}.png",img)
                     cv2.waitKey(1)
 
                     print(f'objects: L:{objects_left}, C:{objects_center}, R:{objects_right}')
@@ -338,7 +351,7 @@ def Tesla_run():
                 distance33 /=xx
                 print(f"{distance11}, {distance22}, {distance33}")
 
-                if distance11 > 42 and distance22 > 42 and distance33 > 42: 
+                if distance11 > 42 and distance22 > 42 and distance33 > 42 and (big_box < 100000 and bottom_y<390): 
                     run(30, 30)
                     time.sleep(0.1)
 
